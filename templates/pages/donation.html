@@ -1,0 +1,319 @@
+{% load static %}
+{% load django_bootstrap5 %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="{% static 'img/fav/favicon.ico' %}" type="image/x-icon">
+    <title>Поддержка ПК</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f8f9fa;
+            padding: 15px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 25px 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #2c5aa0;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 1.8em;
+        }
+        
+        h2 {
+            color: #2c5aa0;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            font-weight: normal;
+        }
+        
+        h3 {
+            color: #2c5aa0;
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 1.3em;
+            font-weight: normal;
+        }
+        
+        .subtitle {
+            text-align: center;
+            font-size: 1.1em;
+            color: #666;
+            margin-bottom: 25px;
+            font-weight: bold;
+        }
+        
+        .content {
+            font-size: 16px;
+            text-align: justify;
+        }
+        
+        .content p {
+            margin-bottom: 15px;
+            text-indent: 1.5em;
+        }
+
+        .edit-button {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: background 0.2s ease;
+        }
+        
+        .edit-button:hover {
+            background: #0069d9;
+            text-decoration: none;
+            color: white;
+        }
+        
+        .highlight {
+            background-color: #fff3cd;
+            padding: 15px;
+            border-left: 4px solid #ffc107;
+            margin: 20px 0;
+            font-weight: bold;
+            border-radius: 5px;
+        }
+        
+        .expenses-list {
+            margin: 25px 0;
+            padding-left: 20px;
+        }
+        
+        .expenses-list li {
+            margin-bottom: 15px;
+            padding-left: 5px;
+        }
+        
+        .expenses-list strong {
+            color: #2c5aa0;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #eee;
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .qr-code {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .qr-code img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            background: white;
+        }
+        
+        .email-link {
+            color: #2c5aa0;
+            word-break: break-all;
+        }
+        
+        /* Стили для мобильных устройств */
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+                font-size: 14px;
+            }
+            
+            .container {
+                padding: 20px 15px;
+                border-radius: 8px;
+            }
+            
+            h1 {
+                font-size: 1.5em;
+            }
+            
+            h2 {
+                font-size: 1.3em;
+            }
+            
+            h3 {
+                font-size: 1.2em;
+            }
+            
+            .subtitle {
+                font-size: 1em;
+            }
+            
+            .content {
+                font-size: 14px;
+                text-align: left;
+            }
+            
+            .highlight {
+                padding: 12px;
+                font-size: 0.95em;
+            }
+            
+            .expenses-list {
+                padding-left: 15px;
+            }
+            
+            .payment-info {
+                overflow-wrap: break-word;
+                word-break: break-word;
+            }
+        }
+        
+        /* Улучшение для очень маленьких экранов */
+        @media (max-width: 400px) {
+            .container {
+                padding: 15px 10px;
+            }
+            
+            h1 {
+                font-size: 1.3em;
+            }
+            
+            .expenses-list {
+                padding-left: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Поддержка кооператива «Бест Вей»<br>на пути к восстановлению!</h1>
+        
+        <p class="subtitle">Уважаемые пайщики!</p>
+        
+        <div class="content">
+            <p>В этот непростой период именно наше единство и взаимопомощь являются ключом к возрождению деятельности нашего потребительского кооператива. Инициативная группа пайщиков приглашает всех неравнодушных объединить усилия для решения общих задач.</p>
+            
+            <div class="highlight">
+                Ваша добровольная финансовая поддержка будет направлена исключительно на покрытие текущих операционных расходов, необходимых для восстановления полноценной работы ПК «Бест Вей».
+            </div>
+            
+            <p>Каждый рубль будет использован с максимальной эффективностью и прозрачностью.</p>
+            
+            <p><strong>Направления расходования средств:</strong></p>
+            
+            <ul class="expenses-list">
+                <li><strong>Юридическое сопровождение:</strong> оплата услуг юристов для подготовки и подачи документов, представительства в государственных органах.</li>
+                
+                <li><strong>Операционные расходы:</strong> уплата государственных пошлин, комиссий финансовых учреждений, нотариальные услуги.</li>
+                
+                <li><strong>Логистика и связь:</strong> транспортные расходы для решения вопросов в других регионах, почтовые и курьерские услуги.</li>
+                
+                <li><strong>Административные расходы:</strong> организация связи, документальное обеспечение деятельности инициативной группы.</li>
+            </ul>
+        </div>
+
+        <p class="subtitle">Важно!</p>
+
+        <div class="content">
+            <p>* Отправляйте только свободные средства, не последние.</p>
+            <p>* Вся оказанная финансовая поддержка будет учтена в дальнейшем, после восстановления работы кооператива! В соответствии с решением Совета ПК о порядке зачёта членских взносов с 01.03.2022 г.</p>
+        </div>
+
+        <p class="subtitle">Как будет учтена ваша помощь?</p>
+
+        <div class="content">
+            <p>В соответствии с решением Совета ПК, после возобновления работы все ваши добровольные взносы будут зачтены в счёт будущих членских взносов. Размер зачёта зависит от вашей категории пайщиков:</p>
+        
+            <ul class="expenses-list">
+                <li><strong>Категория 1</strong> (1000/2000 руб в месяц): Пайщики, проживающие в квартирах и продолжающие накапливать паи (обязательства кооператива выполнены), размер взноса не изменяется.</li>
+                
+                <li><strong>Категория 2:</strong> (500 руб в месяц): Пайщики, находящиеся в стадии формирования пая, в очереди или на этапе приобретения жилья.</li>
+                
+                <li><strong>Категория 3:</strong> (100 руб в месяц): Пайщики-участники акций, для которых размер взноса сохранён.</li>                
+            </ul>
+        </div>
+
+        <p class="subtitle">Вместе мы сможем больше!</p>
+
+        <div class="content">        
+            <p>Ваша поддержка — это реальный вклад в наше общее будущее.</p>
+
+            <p>Воспользуйтесь возможностью закрыть свою задолженность в будущем по членским взносам.</p>
+
+            <p>Минимальный размер платежа: 2 000 руб.</p>
+
+            <p>Кооперативу нужно второе дыхание. Ваша поддержка важна!</p>
+
+            <h3>Способы оказания поддержки:</h3>
+
+            <ul class="expenses-list">
+                <li><strong>1.</strong> Быстрый перевод по QR-коду:</li>
+            </ul>
+
+            <div class="qr-code">
+                <img src="{% static 'img/qr/qr-code.png' %}" alt="QR-код для перевода">
+            </div>
+
+            <p>Отсканируйте код камерой телефона, и вы перейдёте в приложение вашего банка.</p>
+
+            <p>Остаётся только внести сумму не менее 2000 руб. и подтвердить платёж.</p> 
+            
+            <p>После оплаты отправьте квитанцию на электронную почту, указав ваш номер договора с кооперативом в виде "COOP-...": <a href="mailto:chief_accountant@bestwaycoop.ru" class="email-link">chief_accountant@bestwaycoop.ru</a></p>
+            
+            <ul class="expenses-list">
+                <li><strong>2.</strong> Реквизиты для перевода:</li>
+            </ul>
+            
+            <div class="payment-info">
+                <p>Наименование получателя:</p> 
+                <p>ИНДИВИДУАЛЬНЫЙ ПРЕДПРИНИМАТЕЛЬ МОИСЕЕВ ГЕОРГИЙ ВАЛЕРЬЯНОВИЧ</p> 
+                <p>Назначение платежа: «Добровольное пожертвование на уставную деятельность ПК «Бест Вей»»</p> 
+                <p>Реквизиты: Банк АО «ТБанк»</p> 
+                <p>ИНН банка: 7710140679</p> 
+                <p>БИК банка: 044525974</p> 
+                <p>Расчётный счёт: 40802810600002956746</p> 
+            </div>
+
+            <p>Внесите сумму не менее 2000 руб. и подтвердите платёж.</p> 
+
+            <p>После оплаты отправьте квитанцию на электронную почту, указав ваш номер договора с кооперативом в виде "COOP-...": <a href="mailto:chief_accountant@bestwaycoop.ru" class="email-link">chief_accountant@bestwaycoop.ru</a></p>
+        </div>
+
+        <p class="subtitle">Друзья!</p>
+
+        <div class="highlight">
+            <p>Инициативная группа благодарит каждого, кто не остался в стороне. Мы обязуемся предоставлять регулярную публичную отчётность о поступлении и расходовании средств. Вопросы и предложения вы можете направлять по адресу: <a href="mailto:info@bestwaycoop.ru" class="email-link">info@bestwaycoop.ru</a>.</p>
+        </div>
+        <div class="highlight">
+            <a href="https://t.me/+zEs5YZ7dgDE1Yzli" class="email-link">Наш Telegram канал</a> 
+        </div>
+
+        
+        <div class="subtitle">
+            Давайте восстанавливать наш кооператив вместе!
+        </div>
+        <div style="text-align: center;">
+            <a href="{% url 'about' %}" class="edit-button">Вернуться обратно</a>
+        </div>
+    </div>
+</body>
+</html>

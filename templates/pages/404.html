@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Страница не найдена{% endblock %}
+{% block content %}
+<div class="banner_small">
+    <h1>Страница не найдена</h1>
+    <p>Страницы с адресом "{{ request.build_absolute_uri }}" не существует!</p>
+    <a href="{% url 'about' %}">Вернуться на главную</a>
+</div>
+{% endblock %}

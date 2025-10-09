@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+{% load is_staff %}
+
+{% block content %}
+    <h1>Новости</h1>
+
+{% if user|is_admin_template %}
+  <button id="btn-create" class="btn">Создать новость</button>
+{% endif %}
+
+{% for item in news_list %}
+    <article class="news-item" id="news-{{ item.pk }}">
+    <h3>{{ item.title }}</h3>
+    <p class="summary">
+        {{ item.content|truncatechars:200 }}
+        {% if item.content|length > 200 %}
+        <button class="btn-show-more" data-id="{{ item.pk }}">Подробнее</button>
+        {% endif %}
+    </p>
+
+    <div class="full-content" id="full-{{ item.pk }}" style="display:none;">
+        {{ item.content|linebreaksbr }}
+        {% if user|is_admin_template %}
+        <p>
+            <button class="btn-edit" data-id="{{ item.pk }}" data-title="{{ item.title|escape }}" data-content="{{ item.content|escape }}">Редактировать</button>
+            <button class="btn-delete" data-id="{{ item.pk }}" data-title="{{ item.title|escape }}">Удалить</button>
+        </p>
+        {% endif %}
+    </div>
+    </article>
+    {% empty %}
+    <p>Новостей нет.</p>
+{% endfor %}
+
+<div class="pagination">
+  {% if page_obj.has_previous %}
+    <a href="?page=1">« первая</a>
+    <a href="?page={{ page_obj.previous_page_number }}">‹ предыдущая</a>
+  {% endif %}
+  <span>Стр. {{ page_obj.number }} из {{ paginator.num_pages }}</span>
+  {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}">следующая ›</a>
+    <a href="?page={{ paginator.num_pages }}">последняя »</a>
+  {% endif %}
+</div>
+
+<div id="modal-form-backdrop" class="modal-backdrop" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true">
+    <h3 id="modal-form-title">Создать новость</h3>
+
+    <form id="news-form" method="post" action="{% url 'news:create' %}">
+      {% csrf_token %}
+      <input type="hidden" name="news_id" id="news-id" value="">
+      <label>Заголовок
+        <input class="input" type="text" name="title" id="news-title" required maxlength="255">
+      </label>
+      <label>Текст
+        <textarea class="input" name="content" id="news-content" rows="8" required></textarea>
+      </label>
+
+      <div class="actions">
+        <button type="button" id="modal-cancel" class="btn">Отмена</button>
+        <button type="submit" id="modal-save" class="btn">Сохранить</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="modal-delete-backdrop" class="modal-backdrop" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true">
+    <h3>Подтверждение удаления</h3>
+    <p id="delete-message">Вы уверены, что хотите удалить новость?</p>
+
+    <form id="delete-form" method="post" action="">
+      {% csrf_token %}
+      <div class="actions">
+        <button type="button" id="delete-cancel" class="btn">Отмена</button>
+        <button type="submit" id="delete-confirm" class="btn">Да, удалить</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display:none; align-items:center; justify-content:center; z-index:1000; }
+    .modal { background:#fff; padding:20px; border-radius:8px; width:90%; max-width:700px; box-shadow:0 6px 30px rgba(0,0,0,.2); }
+    .modal .actions { margin-top:12px; text-align:right; }
+    .btn { padding:6px 12px; margin:4px; cursor:pointer; }
+    .input, textarea { width:100%; padding:8px; box-sizing:border-box; margin-top:6px; }
+</style>
+
+<script>
+    function getCookie(name) {
+    const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+    return v ? decodeURIComponent(v.pop()) : null;
+    }
+    const csrftoken = getCookie('csrftoken');
+    document.addEventListener('click', function(e){
+    if (e.target.matches('.btn-show-more')){
+        const id = e.target.dataset.id;
+        const full = document.getElementById('full-' + id);
+        if (full.style.display === 'none') {
+        full.style.display = 'block';
+        e.target.textContent = 'Свернуть';
+        } else {
+        full.style.display = 'none';
+        e.target.textContent = 'Подробнее';
+        }
+    }
+    });
+
+    const modalFormBackdrop = document.getElementById('modal-form-backdrop');
+    const modalDeleteBackdrop = document.getElementById('modal-delete-backdrop');
+    const btnCreate = document.getElementById('btn-create');
+    const modalFormTitle = document.getElementById('modal-form-title');
+    const newsForm = document.getElementById('news-form');
+    const newsIdInput = document.getElementById('news-id');
+    const newsTitleInput = document.getElementById('news-title');
+    const newsContentInput = document.getElementById('news-content');
+    const modalCancel = document.getElementById('modal-cancel');
+
+    if (btnCreate) {
+    btnCreate.addEventListener('click', () => {
+        modalFormTitle.textContent = 'Создать новость';
+        newsForm.action = "{% url 'news:create' %}";
+        newsIdInput.value = '';
+        newsTitleInput.value = '';
+        newsContentInput.value = '';
+        modalFormBackdrop.style.display = 'flex';
+        modalFormBackdrop.setAttribute('aria-hidden','false');
+    });
+    }
+
+    document.addEventListener('click', function(e){
+    if (e.target.matches('.btn-edit')) {
+        const pk = e.target.dataset.id;
+        const title = e.target.dataset.title || '';
+        const content = e.target.dataset.content || '';
+        modalFormTitle.textContent = 'Редактировать новость';
+        newsForm.action = "{% url 'news:edit' 0 %}".replace('/0/', '/' + pk + '/');
+        newsIdInput.value = pk;
+        newsTitleInput.value = title;
+        newsContentInput.value = content;
+        modalFormBackdrop.style.display = 'flex';
+        modalFormBackdrop.setAttribute('aria-hidden','false');
+    }
+    });
+
+    modalCancel?.addEventListener('click', () => {
+    modalFormBackdrop.style.display = 'none';
+    modalFormBackdrop.setAttribute('aria-hidden','true');
+    });
+
+    document.addEventListener('click', function(e){
+    if (e.target.matches('.btn-delete')) {
+        const pk = e.target.dataset.id;
+        const title = e.target.dataset.title || '';
+        const msg = document.getElementById('delete-message');
+        msg.textContent = Вы уверены, что хотите удалить новость «${title}»? Это действие необратимо.;
+        const form = document.getElementById('delete-form');
+        form.action = "{% url 'news:delete' 0 %}".replace('/0/', '/' + pk + '/');
+        modalDeleteBackdrop.style.display = 'flex';
+        modalDeleteBackdrop.setAttribute('aria-hidden','false');
+    }
+    });
+
+    document.getElementById('delete-cancel').addEventListener('click', () => {
+    modalDeleteBackdrop.style.display = 'none';
+    modalDeleteBackdrop.setAttribute('aria-hidden','true');
+    });
+
+    newsForm.addEventListener('submit', function(ev){
+    ev.preventDefault();
+    const url = newsForm.action;
+    const formData = new FormData(newsForm);
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+        'X-CSRFToken': csrftoken,
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'application/json'
+        },
+        body: formData
+    }).then(r => r.json())
+        .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Ошибка: ' + (data.error || 'неизвестная ошибка'));
+        }
+        }).catch(err => {
+        console.error(err);
+        alert('Ошибка при сохранении новости');
+        });
+    });
+
+    document.getElementById('delete-form').addEventListener('submit', function(ev){
+    ev.preventDefault();
+    const url = this.action;
+    fetch(url, {
+        method: 'POST',
+        headers: {
+        'X-CSRFToken': csrftoken,
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'application/json'
+        },
+        body: new FormData(this)
+    }).then(r => r.json())
+        .then(data => {
+        if (data.success) location.reload();
+        else alert('Ошибка: ' + (data.error || 'неизвестная ошибка'));
+        }).catch(err => {
+        console.error(err);
+        alert('Ошибка при удалении новости');
+        });
+    });
+
+</script>
+
+{% endblock %}

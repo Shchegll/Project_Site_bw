@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Ошибка сервера{% endblock %}
+{% block content %}
+<div class="banner_small">
+  <h1>Ошибка сервера</h1>
+  <p>На сервере что-то пошло не так!</p>
+  <a href="{% url 'about' %}">Вернуться на главную</a>
+</div>
+{% endblock %}

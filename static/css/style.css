@@ -1,0 +1,197 @@
+/* Цветовая палитра */
+:root {
+    --primary-blue: #1e88e5;
+    --dark-blue: #1565c0;
+    --red: #d32f2f;
+    --light-blue: #f3a33a; /* Исправлен оранжевый цвет на синий */
+    --accent-blue: #82b1ff;
+    --text-color: #333;
+    --white: #ffffff;
+    --shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Базовые настройки */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    line-height: 1.5;
+    color: var(--text-color);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: #f5f9ff;
+}
+
+/* Контейнер */
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 15px;
+    box-sizing: border-box;
+}
+
+/* Шапка */
+.header {
+    background-color: var(--primary-blue);
+    color: var(--white);
+    padding: 1rem 0;
+    box-shadow: var(--shadow);
+    position: sticky;
+    top: -1;
+    z-index: 100;
+}
+
+.nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px; /* Пространство между блоками */
+}
+
+.logo {
+    height: 50px;
+    max-width: 100%;
+}
+
+.logo-link {
+    flex: 0 0 auto;
+}
+
+.info-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.info-buttons a,
+.auth-btn {
+    color: var(--white);
+    text-decoration: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+/* Стили для информационных кнопок */
+.info-buttons a {
+    background-color: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    margin-right: right;
+}
+
+.info-buttons a:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: var(--light-blue);
+}
+
+/* Стили для кнопок авторизации */
+.auth-btn {
+    background-color: var(--red);
+    border: 1px solid var(--red);
+}
+
+.auth-btn:hover {
+    background-color: var(--primary-blue);
+    border-color: var(--light-blue);
+}
+
+/* Основной контент */
+.main {
+    flex: 1;
+    padding: 2rem 0;
+    width: 100%;
+}
+
+/* Баннер */
+.banner {
+    border: 2px solid var(--primary-blue);
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    margin: 20px auto;
+    max-width: 800px;
+    background-color: var(--white);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    position: relative;
+    padding-bottom: 40px;
+    width: calc(100% - 40px);
+}
+
+.banner_small {
+    border: 2px solid var(--primary-blue);
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    margin: 20px auto;
+    max-width: 450px;
+    background-color: var(--white);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    position: relative;
+    padding-bottom: 40px;
+    width: calc(100% - 40px);
+}
+
+.banner-footer {
+    position: absolute;
+    bottom: 10px;
+    right: 15px;
+    font-size: 0.9rem;
+    color: #666;
+    font-style: italic;
+}
+
+/* Подвал */
+.footer {
+    background-color: var(--dark-blue);
+    color: var(--white);
+    padding: 1rem 0;
+    text-align: center;
+    width: 100%;
+}
+
+.footer a {
+    color: var(--white);
+    transition: color 0.3s ease;
+}
+
+.footer a:hover {
+    color: var(--light-blue);
+}
+
+/* Адаптация для мобильных */
+@media (max-width: 768px) {
+    .nav {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .info-buttons,
+    .auth-buttons {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    .info-buttons a,
+    .auth-btn {
+        padding: 6px 12px;
+        font-size: 0.9rem;
+        flex-grow: 1;
+        min-width: 120px;
+    }
+    
+    .auth-form {
+        flex-grow: 1;
+        min-width: 120px;
+    }
+}

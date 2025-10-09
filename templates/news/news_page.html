@@ -1,0 +1,624 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% load is_staff %}
+
+<div class="news-container">
+    {% for item in news_list %}
+        <article class="news-item" id="news-{{ item.pk }}">
+            <div class="news-header">
+                <h3 class="news-title">{{ item.title }}</h3>
+                <span class="news-date">{{ item.created_at|date:"d.m.Y" }}</span>
+            </div>
+            
+            <div class="news-content">
+                <p class="summary">
+                    {{ item.content|truncatechars:200 }}
+                    {% if item.content|length > 200 %}
+                        <button class="btn-show-more" data-id="{{ item.pk }}">Подробнее</button>
+                    {% endif %}
+                </p>
+
+                <div class="full-content" id="full-{{ item.pk }}" style="display:none;">
+                    {{ item.content|linebreaksbr }}
+                </div>
+            </div>
+            
+            {% if user|is_staff_template %}
+            <div class="news-actions">
+                <button class="btn-edit" data-id="{{ item.pk }}" data-title="{{ item.title|escape }}" data-content="{{ item.content|escape }}">Изменить</button>
+                <button class="btn-delete" data-id="{{ item.pk }}" data-title="{{ item.title|escape }}">Удалить</button>
+            </div>
+            {% endif %}
+        </article>
+    {% empty %}
+        <div class="no-news">
+            <p>Новостей пока нет.</p>
+        </div>
+    {% endfor %}
+</div>
+
+<div class="page-actions">
+    {% if user|is_staff_template %}
+        <button id="btn-create" class="btn btn-primary">Создать новость</button>
+    {% endif %}
+    
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+            <a href="?page=1" class="pagination-link">« первая</a>
+            <a href="?page={{ page_obj.previous_page_number }}" class="pagination-link">‹ предыдущая</a>
+        {% endif %}
+        <span class="pagination-current">Стр. {{ page_obj.number }} из {{ paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" class="pagination-link">следующая ›</a>
+            <a href="?page={{ paginator.num_pages }}" class="pagination-link">последняя »</a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- CREATE / EDIT MODAL -->
+<div id="modal-form-backdrop" class="modal-backdrop" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true">
+        <h3 id="modal-form-title">Создать новость</h3>
+
+        <form id="news-form" method="post" action="{% url 'news:create' %}">
+            {% csrf_token %}
+            <input type="hidden" name="news_id" id="news-id" value="">
+            <div class="form-group">
+                <label for="news-title">Заголовок</label>
+                <input class="input" type="text" name="title" id="news-title" required maxlength="255">
+            </div>
+            <div class="form-group">
+                <label for="news-content">Текст</label>
+                <textarea class="input" name="content" id="news-content" rows="8" required></textarea>
+            </div>
+
+            <div class="actions">
+                <button type="button" id="modal-cancel" class="btn btn-secondary">Отмена</button>
+                <button type="submit" id="modal-save" class="btn btn-primary">Сохранить</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- DELETE CONFIRM MODAL -->
+<div id="modal-delete-backdrop" class="modal-backdrop" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true">
+        <h3>Подтверждение удаления</h3>
+        <p id="delete-message">Вы уверены, что хотите удалить новость?</p>
+
+        <!-- Обратите внимание: action заполняется динамически в JS -->
+        <form id="delete-form" method="post" action="">
+            {% csrf_token %}
+            <div class="actions">
+                <button type="button" id="delete-cancel" class="btn btn-secondary">Отмена</button>
+                <button type="submit" id="delete-confirm" class="btn btn-danger">Да, удалить</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    /* Основные стили */
+    .news-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .news-item {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        margin-bottom: 24px;
+        overflow: hidden;
+        transition: transform 0.2s, box-shadow 0.2s;
+        /* Добавляем для мобильных */
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+    
+    .news-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+    }
+    
+    .news-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 24px 0;
+        border-bottom: 1px solid #f0f0f0;
+        margin-bottom: 16px;
+        /* Добавляем для мобильных */
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+    
+    .news-title {
+        margin: 0;
+        color: #2c3e50;
+        font-size: 1.4rem;
+        font-weight: 600;
+        /* Важно: добавляем перенос слов */
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        hyphens: auto;
+    }
+    
+    .news-date {
+        color: #7f8c8d;
+        font-size: 0.9rem;
+        /* Добавляем для мобильных */
+        white-space: nowrap;
+        flex-shrink: 0;
+        margin-left: 10px;
+    }
+    
+    .news-content {
+        padding: 0 24px 16px;
+        /* Добавляем для мобильных */
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+    
+    .summary {
+        color: #34495e;
+        line-height: 1.6;
+        margin-bottom: 12px;
+        /* Важно: добавляем перенос слов */
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        hyphens: auto;
+    }
+    
+    .full-content {
+        color: #2c3e50;
+        line-height: 1.6;
+        margin-top: 12px;
+        /* Важно: добавляем перенос слов */
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        hyphens: auto;
+    }
+    
+    .news-actions {
+        background: #f8f9fa;
+        padding: 16px 24px;
+        display: flex;
+        gap: 12px;
+        border-top: 1px solid #e9ecef;
+        /* Добавляем для мобильных */
+        flex-wrap: wrap;
+    }
+    
+    .no-news {
+        text-align: center;
+        padding: 40px 20px;
+        color: #7f8c8d;
+        font-size: 1.1rem;
+    }
+    
+    .page-actions {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 0 20px 40px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+    
+    /* Кнопки */
+    .btn {
+        padding: 10px 18px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s;
+        font-size: 0.95rem;
+        /* Добавляем для мобильных */
+        word-wrap: break-word;
+        white-space: nowrap;
+    }
+    
+    .btn-primary {
+        background: #3498db;
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        background: #2980b9;
+    }
+    
+    .btn-secondary {
+        background: #95a5a6;
+        color: white;
+    }
+    
+    .btn-secondary:hover {
+        background: #7f8c8d;
+    }
+    
+    .btn-danger {
+        background: #e74c3c;
+        color: white;
+    }
+    
+    .btn-danger:hover {
+        background: #c0392b;
+    }
+    
+    .btn-show-more {
+        background: transparent;
+        color: #3498db;
+        border: none;
+        cursor: pointer;
+        font-weight: 500;
+        padding: 0;
+        margin-left: 4px;
+        text-decoration: underline;
+        /* Добавляем для мобильных */
+        white-space: nowrap;
+    }
+    
+    .btn-show-more:hover {
+        color: #2980b9;
+    }
+    
+    /* Пагинация */
+    .pagination {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        /* Добавляем для мобильных */
+        word-wrap: break-word;
+    }
+    
+    .pagination-link {
+        color: #3498db;
+        text-decoration: none;
+        padding: 6px 10px;
+        border-radius: 4px;
+        transition: background 0.2s;
+        /* Добавляем для мобильных */
+        white-space: nowrap;
+    }
+    
+    .pagination-link:hover {
+        background: #f1f8ff;
+    }
+    
+    .pagination-current {
+        color: #7f8c8d;
+        font-weight: 500;
+        /* Добавляем для мобильных */
+        word-wrap: break-word;
+    }
+    
+    /* Модальные окна */
+    .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+    
+    .modal {
+        background: #fff;
+        padding: 28px;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 600px;
+        box-shadow: 0 10px 40px rgba(0,0,0,.2);
+        /* Добавляем для мобильных */
+        margin: 20px;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+    
+    .modal h3 {
+        margin-top: 0;
+        margin-bottom: 20px;
+        color: #2c3e50;
+        font-size: 1.5rem;
+        /* Добавляем для мобильных */
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: 500;
+        color: #2c3e50;
+        /* Добавляем для мобильных */
+        word-wrap: break-word;
+    }
+    
+    .input, textarea {
+        width: 100%;
+        padding: 12px;
+        box-sizing: border-box;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-family: inherit;
+        font-size: 1rem;
+        transition: border 0.2s;
+        /* Важно: добавляем для мобильных */
+        max-width: 100%;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+    
+    .input:focus, textarea:focus {
+        outline: none;
+        border-color: #3498db;
+        box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+    }
+    
+    .modal .actions {
+        margin-top: 20px;
+        text-align: right;
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        /* Добавляем для мобильных */
+        flex-wrap: wrap;
+    }
+    
+    /* Адаптивность */
+    @media (max-width: 768px) {
+        .news-container {
+            padding: 15px 10px;
+        }
+        
+        .news-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 15px 15px 0;
+        }
+        
+        .news-title {
+            font-size: 1.2rem;
+            width: 100%;
+        }
+        
+        .news-date {
+            margin-left: 0;
+            align-self: flex-end;
+        }
+        
+        .news-content {
+            padding: 0 15px 12px;
+        }
+        
+        .news-actions {
+            padding: 12px 15px;
+            justify-content: center;
+        }
+        
+        .page-actions {
+            flex-direction: column;
+            align-items: stretch;
+            padding: 0 10px 20px;
+        }
+        
+        .pagination {
+            justify-content: center;
+            text-align: center;
+        }
+        
+        .pagination-link, .pagination-current {
+            font-size: 0.9rem;
+        }
+        
+        .modal {
+            padding: 20px 15px;
+            margin: 10px;
+        }
+        
+        .modal h3 {
+            font-size: 1.3rem;
+        }
+        
+        .modal .actions {
+            flex-direction: column;
+        }
+        
+        .btn {
+            width: 100%;
+            text-align: center;
+        }
+    }
+
+    /* Дополнительные улучшения для очень маленьких экранов */
+    @media (max-width: 480px) {
+        .news-header {
+            padding: 12px 12px 0;
+        }
+        
+        .news-content {
+            padding: 0 12px 10px;
+        }
+        
+        .news-title {
+            font-size: 1.1rem;
+        }
+        
+        .summary, .full-content {
+            font-size: 0.95rem;
+        }
+        
+        .pagination {
+            flex-direction: column;
+            gap: 8px;
+        }
+    }
+</style>
+
+<script>
+    (function(){
+        // Получение CSRF cookie
+        function getCookie(name) {
+            const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+            return v ? decodeURIComponent(v.pop()) : null;
+        }
+        const csrftoken = getCookie('csrftoken');
+
+        // show-more toggle
+        document.addEventListener('click', function(e){
+            if (e.target.matches('.btn-show-more')){
+                const id = e.target.dataset.id;
+                const full = document.getElementById('full-' + id);
+                if (!full) return;
+                if (full.style.display === 'none') {
+                    full.style.display = 'block';
+                    e.target.textContent = 'Свернуть';
+                } else {
+                    full.style.display = 'none';
+                    e.target.textContent = 'Подробнее';
+                }
+            }
+        });
+
+        // Modal elements
+        const modalFormBackdrop = document.getElementById('modal-form-backdrop');
+        const modalDeleteBackdrop = document.getElementById('modal-delete-backdrop');
+        const btnCreate = document.getElementById('btn-create');
+        const modalFormTitle = document.getElementById('modal-form-title');
+        const newsForm = document.getElementById('news-form');
+        const newsIdInput = document.getElementById('news-id');
+        const newsTitleInput = document.getElementById('news-title');
+        const newsContentInput = document.getElementById('news-content');
+        const modalCancel = document.getElementById('modal-cancel');
+        const deleteCancel = document.getElementById('delete-cancel');
+        const deleteForm = document.getElementById('delete-form');
+
+        // Helper: base delete URL with placeholder
+        const baseDeleteUrl = "{% url 'news:delete' 0 %}".replace('0', '__PK__');
+
+        // CREATE: open modal
+        if (btnCreate) {
+            btnCreate.addEventListener('click', () => {
+                modalFormTitle.textContent = 'Создать новость';
+                newsForm.action = "{% url 'news:create' %}";
+                newsIdInput.value = '';
+                newsTitleInput.value = '';
+                newsContentInput.value = '';
+                modalFormBackdrop.style.display = 'flex';
+                modalFormBackdrop.setAttribute('aria-hidden','false');
+            });
+        }
+
+        // EDIT: open modal with data
+        document.addEventListener('click', function(e){
+            if (e.target.matches('.btn-edit')) {
+                const pk = e.target.dataset.id;
+                const title = e.target.dataset.title || '';
+                const content = e.target.dataset.content || '';
+                modalFormTitle.textContent = 'Редактировать новость';
+                // build edit url by replacing placeholder
+                newsForm.action = "{% url 'news:edit' 0 %}".replace('0', pk);
+                newsIdInput.value = pk;
+                newsTitleInput.value = title;
+                newsContentInput.value = content;
+                modalFormBackdrop.style.display = 'flex';
+                modalFormBackdrop.setAttribute('aria-hidden','false');
+            }
+        });
+
+        // Cancel create/edit modal
+        modalCancel?.addEventListener('click', () => {
+            modalFormBackdrop.style.display = 'none';
+            modalFormBackdrop.setAttribute('aria-hidden','true');
+        });
+
+        // DELETE: open confirm modal and set action
+        document.addEventListener('click', function(e){
+            if (e.target.matches('.btn-delete')) {
+                const pk = e.target.dataset.id;
+                const title = e.target.dataset.title || '';
+                const msg = document.getElementById('delete-message');
+                msg.textContent = 'Вы уверены, что хотите удалить новость "' + title + '"? Это действие необратимо.';
+                // build delete url by replacing placeholder
+                if (deleteForm) {
+                    deleteForm.action = baseDeleteUrl.replace('__PK__', pk);
+                }
+                modalDeleteBackdrop.style.display = 'flex';
+                modalDeleteBackdrop.setAttribute('aria-hidden','false');
+            }
+        });
+
+        // Cancel delete modal
+        deleteCancel?.addEventListener('click', () => {
+            modalDeleteBackdrop.style.display = 'none';
+            modalDeleteBackdrop.setAttribute('aria-hidden','true');
+            if (deleteForm) deleteForm.action = '';
+        });
+
+        // NEWS FORM: create / edit via AJAX
+        if (newsForm) {
+            newsForm.addEventListener('submit', function(ev){
+                ev.preventDefault();
+                const url = newsForm.action;
+                const formData = new FormData(newsForm);
+
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrftoken,
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    },
+                    body: formData
+                })
+                .then(r => {
+                    const ct = r.headers.get('content-type') || '';
+                    if (ct.includes('application/json')) return r.json();
+                    // Если вернулся редирект / HTML, перезагрузим страницу
+                    return r.text().then(() => { location.reload(); });
+                })
+                .then(data => {
+                    if (!data) return; // уже перезагрузили
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Ошибка: ' + (data.error || 'неизвестная ошибка'));
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert('Ошибка при сохранении новости');
+                });
+            });
+        }
+
+        // DELETE FORM: обычная отправка (без AJAX)
+        if (deleteForm) {
+            deleteForm.addEventListener('submit', function(ev){
+                // НЕ вызываем ev.preventDefault() - позволяем форме отправиться обычным way
+                console.log('Обычная отправка формы удаления');
+                
+                // Просто скрываем модальное окно
+                modalDeleteBackdrop.style.display = 'none';
+                modalDeleteBackdrop.setAttribute('aria-hidden','true');
+                
+                // Браузер сам отправит POST запрос и обработает редирект
+            });
+        }
+    })();
+</script>
+
+{% endblock content %}

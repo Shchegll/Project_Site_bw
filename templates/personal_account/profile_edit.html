@@ -1,0 +1,539 @@
+{% extends "base.html" %}
+{% comment %} .as_hidden - для полей неведимок {% endcomment %}
+{% block content %}
+    <div class="banner">
+        <h2>Редактирование личной информации</h2>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-section">
+                <h3>Личная информация</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        {{ form.last_name.label_tag }}
+                        {{ form.last_name }}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.first_name.label_tag }}
+                        {{ form.first_name }}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.surname.label_tag }}
+                        {{ form.surname }}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.phone.label_tag }}
+                        {{ form.phone }}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.birth_date.label_tag }}
+                        {{ form.birth_date }}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.id_coor.label_tag }}
+                        {{ form.id_coor }}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.document_type.label_tag }}
+                        {{ form.document_type }}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.id_document.label_tag }}
+                        {{ form.id_document }}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.date_of_issue.label_tag }}
+                        {{ form.date_of_issue }}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.issued_by_whom.label_tag }}
+                        {{ form.issued_by_whom }}
+                    </div> 
+
+                    <div class="form-group">
+                        {{ form.inn.label_tag }}
+                        {{ form.inn }}
+                    </div>
+
+                    <div class="form-group">
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.document_photo_main.label_tag }}
+                        {{ form.document_photo_main }}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.document_photo_reg.label_tag }}
+                        {{ form.document_photo_reg }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>Информация о покупке</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        {{ form.type_of_purchase.label_tag }}
+                        {{ form.type_of_purchase }}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.price.label_tag }}
+                        {{ form.price }}
+                    </div>
+                    
+                    <div class="form-group">
+                        {{ form.price_in_queue.label_tag }}
+                        {{ form.price_in_queue }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>От кого вы узнали о кооперативе</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        {{ form.parther_name.label_tag }}
+                        {{ form.parther_name }}
+                    </div>
+                    <div class="form-group">
+                        {{ form.parther_phone.label_tag }}
+                        {{ form.parther_phone }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>Адрес регистрации</h3>
+                <div class="form-row">
+                    <div class="form-group_wide">
+                        <label>Поиск адреса:</label>
+                        <input type="text" id="reg-address-search" class="form-control" placeholder="Введите полный адрес...">
+                    </div>
+                    <div class="form-group">
+                        {{ address_form.reg_address.label_tag }}
+                        {{ address_form.reg_address }}
+                    </div>
+                    <div class="form-group">
+                        {{ address_form.reg_country.label_tag }}
+                        {{ address_form.reg_country }}
+                    </div>
+                    <div class="form-group">
+                        {{ address_form.reg_region.label_tag }}
+                        {{ address_form.reg_region }}
+                    </div>
+                    <div class="form-group">
+                        {{ address_form.reg_city.label_tag }}
+                        {{ address_form.reg_city }}
+                    </div>
+                    <div class="form-group">
+                        {{ address_form.reg_street.label_tag }}
+                        {{ address_form.reg_street }}
+                    </div>
+                    <div class="form-group">
+                        {{ address_form.reg_house.label_tag }}
+                        {{ address_form.reg_house }}
+                    </div>
+                    <div class="form-group">
+                        {{ address_form.reg_apartament.label_tag }}
+                        {{ address_form.reg_apartament }}
+                    </div>
+                    <div class="form-group">
+                        {{ address_form.reg_postal_code.label_tag }}
+                        {{ address_form.reg_postal_code }}
+                    </div>
+                    <div class="form-group">
+                        {{ address_form.is_approved.label_tag }}
+                        {{ address_form.is_approved }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section" id="actualAddressSection" style="display: none;">
+                <h3>Фактический адрес проживания</h3>
+                <div class="form-row">
+                    <div class="form-group_wide">
+                        <label>Поиск адреса:</label>
+                        <input type="text" id="act-address-search" class="form-control" placeholder="Введите полный адрес...">
+                    </div>
+                    <div class="form-group">
+                        {{ address_form.act_country.label_tag }}
+                        {{ address_form.act_country }}
+                    </div>
+                    <div class="form-group">
+                        {{ address_form.act_region.label_tag }}
+                        {{ address_form.act_region }}
+                    </div>
+                    <div class="form-group">
+                        {{ address_form.act_city.label_tag }}
+                        {{ address_form.act_city }}
+                    </div>
+                    <div class="form-group">
+                        {{ address_form.act_address.label_tag }}
+                        {{ address_form.act_address }}
+                    </div>
+                    <div class="form-group">
+                        {{ address_form.act_street.label_tag }}
+                        {{ address_form.act_street }}
+                    </div>
+                    <div class="form-group">
+                        {{ address_form.act_house.label_tag }}
+                        {{ address_form.act_house }}
+                    </div>
+                    <div class="form-group">
+                        {{ address_form.act_apartament.label_tag }}
+                        {{ address_form.act_apartament }}
+                    </div>
+                    <div class="form-group">
+                        {{ address_form.act_postal_code.label_tag }}
+                        {{ address_form.act_postal_code }}
+                    </div>
+                    <div class="form-group">
+
+                    </div>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Сохранить</button>
+
+            {% if form.errors %}
+            <div class="banner error">
+                <ul>
+                {% for field in form %}
+                    {% for error in field.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+                {% for error in form.non_field_errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+
+    <style>
+        .form-section {
+            margin-bottom: 2rem;
+            padding: 1rem;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 0 -10px;
+        }
+        .form-group {
+            flex: 1 0 calc(50% - 20px);
+            margin: 0 10px 15px;
+        }
+
+        .form-group_wide {
+            flex: 1 0 calc(100% - 20px);
+            margin: 0 10px 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-control {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+    </style>
+
+    <link href="https://cdn.jsdelivr.net/npm/suggestions-jquery@20.3.0/dist/css/suggestions.min.css" rel="stylesheet" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/suggestions-jquery@20.3.0/dist/js/jquery.suggestions.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const checkbox = document.querySelector('#{{ address_form.is_approved.id_for_label }}');
+            const regAddressSection = document.querySelector('.form-section:has(#{{ address_form.reg_country.id_for_label }})');
+            const actualAddressSection = document.getElementById('actualAddressSection');
+            
+            const regFields = {
+                country: document.querySelector('#{{ address_form.reg_country.id_for_label }}'),
+                region: document.querySelector('#{{ address_form.reg_region.id_for_label }}'),
+                city: document.querySelector('#{{ address_form.reg_city.id_for_label }}'),
+                address: document.querySelector('#{{ address_form.reg_address.id_for_label }}'),
+                street: document.querySelector('#{{ address_form.reg_street.id_for_label }}'),
+                house: document.querySelector('#{{ address_form.reg_house.id_for_label }}'),
+                flat: document.querySelector('#{{ address_form.reg_apartament.id_for_label }}'),
+                postal_code: document.querySelector('#{{ address_form.reg_postal_code.id_for_label }}')
+            };
+            
+            const actFields = {
+                country: document.querySelector('#{{ address_form.act_country.id_for_label }}'),
+                region: document.querySelector('#{{ address_form.act_region.id_for_label }}'),
+                city: document.querySelector('#{{ address_form.act_city.id_for_label }}'),
+                address: document.querySelector('#{{ address_form.act_address.id_for_label }}'),
+                street: document.querySelector('#{{ address_form.act_street.id_for_label }}'),
+                house: document.querySelector('#{{ address_form.act_house.id_for_label }}'),
+                flat: document.querySelector('#{{ address_form.act_apartament.id_for_label }}'),
+                postal_code: document.querySelector('#{{ address_form.act_postal_code.id_for_label }}')
+            };
+
+            function copyRegistrationToActual() {
+                if (checkbox.checked) {
+                    actFields.country.value = regFields.country.value;
+                    actFields.region.value = regFields.region.value;
+                    actFields.city.value = regFields.city.value;
+                    actFields.address.value = regFields.address.value;
+                    actFields.street.value = regFields.street.value;
+                    actFields.house.value = regFields.house.value;
+                    actFields.flat.value = regFields.flat.value;
+                    actFields.postal_code.value = regFields.postal_code.value;
+                }
+            }
+
+            function toggleAddressVisibility() {
+                if (checkbox.checked) {
+                    regAddressSection.style.display = 'block';
+                    actualAddressSection.style.display = 'none';
+                    copyRegistrationToActual();
+                } else {
+                    regAddressSection.style.display = 'block';
+                    actualAddressSection.style.display = 'block';
+                }
+            }
+            
+            toggleAddressVisibility();
+
+            Object.values(regFields).forEach(field => {
+                if (field) {
+                    field.addEventListener('change', function() {
+                        copyRegistrationToActual();
+                    });
+                    field.addEventListener('input', function() {
+                        copyRegistrationToActual();
+                    });
+                }
+            });
+
+            checkbox.addEventListener('change', toggleAddressVisibility);
+        });
+    </script>
+
+    <script>
+        $(document).ready(function() {
+            const token = '{{ dadata_token }}';
+            
+            function fillAddressFields(suggestion, prefix) {
+                dat = suggestion.data
+                if (dat.country) {
+                    $(`#id_${prefix}_country`).val(dat.country).trigger('change');
+                }
+                
+                if (dat.region_with_type) {
+                    $(`#id_${prefix}_region`).val(dat.region_with_type);
+                }
+                
+                if (dat.city_with_type) {
+                    $(`#id_${prefix}_city`).val(dat.city_with_type);
+                } else if (dat.settlement_with_type) {
+                    $(`#id_${prefix}_city`).val(dat.settlement_with_type);
+                }
+                
+                if (dat.street_with_type) {
+                    $(`#id_${prefix}_street`).val(dat.street_with_type);
+                }
+                
+                if (suggestion.value) {
+                    $(`#id_${prefix}_address`).val(suggestion.value);
+                }
+                
+                if (dat.house) {
+                    $(`#id_${prefix}_house`).val(dat.house);
+                }
+                
+                if (dat.flat) {
+                    $(`#id_${prefix}_apartament`).val(dat.flat);
+                }
+
+                if (dat.postal_code) {
+                    $(`#id_${prefix}_postal_code`).val(dat.postal_code);
+                }
+            }
+
+            setTimeout(() => {
+                if ($("#reg-address-search").length) {
+                    $("#reg-address-search").suggestions({
+                        token: token,
+                        type: "ADDRESS",
+                        count: 5,
+                        onSelect: function(suggestion) {
+                            fillAddressFields(suggestion, 'reg');
+                        }
+                    });
+                }
+                
+                if ($("#act-address-search").length) {
+                    $("#act-address-search").suggestions({
+                        token: token,
+                        type: "ADDRESS",
+                        count: 5,
+                        onSelect: function(suggestion) {
+                            fillAddressFields(suggestion, 'act');
+                        }
+                    });
+                }
+            }, 180);
+        });
+    </script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const el = document.querySelector('input[name="id_coor"]');
+            if (!el) return;
+            
+            el.value = el.value || 'COOP-';
+            
+            el.addEventListener('input', (e) => {
+                const nums = e.target.value.replace('COOP-', '').replace(/\D/g, '').slice(0,18);
+                e.target.value = `COOP-${nums.slice(0,8)}${nums.length>8?'-'+nums.slice(8,14):''}${nums.length>14?'-'+nums.slice(14,18):''}`;
+            });
+            
+            el.addEventListener('keydown', (e) => {
+                const pos = e.target.selectionStart;
+                const value = e.target.value;
+                
+                if (e.key === 'Backspace') {
+                    if (value[pos - 1] === '-' && pos > 0) {
+                        e.preventDefault();
+                        const newValue = value.slice(0, pos - 2) + value.slice(pos - 1);
+                        e.target.value = newValue;
+                        e.target.setSelectionRange(pos - 2, pos - 2);
+                    }
+                }
+                
+                if (e.key === 'Delete') {
+                    if (value[pos] === '-' && pos < value.length) {
+                        e.preventDefault();
+                        const newValue = value.slice(0, pos + 1) + value.slice(pos + 2);
+                        e.target.value = newValue;
+                        e.target.setSelectionRange(pos, pos);
+                    }
+                }
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const passportInput = document.querySelector('input[name="id_document"]');
+            if (!passportInput) return;
+            
+            passportInput.addEventListener('input', (e) => {
+                const nums = e.target.value.replace(/\D/g, '').slice(0, 10);
+                
+                let formatted = nums.slice(0, 4);
+                if (nums.length > 4) {
+                    formatted += ' ' + nums.slice(4, 10);
+                }
+                
+                e.target.value = formatted;
+            });
+            
+            passportInput.addEventListener('keydown', (e) => {
+                const pos = e.target.selectionStart;
+                const value = e.target.value;
+                
+                if (e.key === 'Backspace' && value[pos - 1] === ' ' && pos > 0) {
+                    e.preventDefault();
+                    const newValue = value.slice(0, pos - 1) + value.slice(pos);
+                    e.target.value = newValue;
+                    e.target.setSelectionRange(pos - 1, pos - 1);
+                }
+                
+                if (e.key === 'Delete' && value[pos] === ' ' && pos < value.length) {
+                    e.preventDefault();
+                    const newValue = value.slice(0, pos) + value.slice(pos + 1);
+                    e.target.value = newValue;
+                    e.target.setSelectionRange(pos, pos);
+                }
+                
+                if (e.key.length === 1 && !/\d/.test(e.key) && !e.ctrlKey && !e.metaKey) {
+                    e.preventDefault();
+                }
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const sourceInput = document.querySelector('input[name="price"]');
+            const resultInput = document.querySelector('input[name="price_in_queue"]');
+            
+            if (!sourceInput || !resultInput) return;
+            
+            sourceInput.addEventListener('input', (e) => {
+                const value = parseFloat(e.target.value.replace(/[^\d.,]/g, '').replace(',', '.')) || 0;
+                const thirtyFivePercent = value * 0.35;
+                
+                resultInput.value = thirtyFivePercent.toFixed(2);
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const phoneInputs = document.querySelectorAll('input[name="phone"], input[name="parther_phone"]');
+            
+            phoneInputs.forEach(phoneInput => {
+                phoneInput.value = phoneInput.value || '+7';
+                
+                phoneInput.addEventListener('input', (e) => {
+                    let nums = e.target.value.replace('+7', '').replace(/\D/g, '');
+                    
+                    nums = nums.slice(0, 10);
+                    
+                    e.target.value = '+7' + nums;
+                });
+                
+                phoneInput.addEventListener('keydown', (e) => {
+                    const pos = e.target.selectionStart;
+                    const value = e.target.value;
+                    
+                    if (e.key === 'Backspace' && pos <= 2) {
+                        e.preventDefault();
+                        return;
+                    }
+                    
+                    if (pos < 2 && e.key.length === 1 && !e.ctrlKey && !e.metaKey) {
+                        e.preventDefault();
+                        const newValue = '+7' + e.key + value.slice(2);
+                        e.target.value = newValue;
+                        e.target.setSelectionRange(3, 3);
+                    }
+                });
+                
+                phoneInput.addEventListener('focus', (e) => {
+                    if (e.target.value === '+7') {
+                        e.target.setSelectionRange(2, 2);
+                    }
+                });
+            });
+        });
+
+    </script>
+
+{% endblock content %}
