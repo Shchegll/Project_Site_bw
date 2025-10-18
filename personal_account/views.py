@@ -9,8 +9,15 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.http import Http404
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .forms import LoginForm, RegistrationForm, ProfileUpdateForm, ProfileAddressForm
+from django.core.exceptions import ValidationError
 from .models import Profile, Profile_address
 from django.conf import settings
+from django.contrib.auth import login
+from django.contrib.auth.hashers import make_password
+from django.views import View
+from django.db import transaction
+from django.utils import timezone
+from . import utils as reg_utils
 
 
 class AccountPageView(TemplateView):
@@ -35,16 +42,128 @@ class CustomPlugView(TemplateView):
 class CustomRequisitesView(TemplateView):
     template_name = "personal_account/requisites.html"
 
-class CustomRegistrationView(CreateView):  
-    form_class = RegistrationForm  
-    template_name = 'personal_account/signup.html'  
-    extra_context = {'title': 'Регистрация на сайте'}  
 
-    def get_success_url(self):  
-        return reverse_lazy('personal_account:login')  
+class RegistrationStartView(View):
+    template_name = 'personal_account/signup.html'
+    form_class = RegistrationForm
 
-    def form_valid(self, form):  
-        return super().form_valid(form)
+    def get(self, request):
+        form = self.form_class()
+        return render(request, self.template_name, {'form': form, 'title': 'Регистрация на сайте'})
+
+    def post(self, request):
+        form = self.form_class(request.POST)
+        if not form.is_valid():
+            return render(request, self.template_name, {'form': form})
+
+        email = form.cleaned_data['email']
+        if User.objects.filter(email=email).exists():
+            form.add_error('email', "Пользователь с таким email уже существует.")
+            return render(request, self.template_name, {'form': form})
+
+        if not reg_utils.can_send_code(email):
+            messages.error(request, "Слишком много попыток отправки. Попробуйте позже.")
+            return render(request, self.template_name, {'form': form})
+
+        code = reg_utils.generate_code(6)
+
+        hashed_password = make_password(form.cleaned_data['password1'])
+
+        data = {
+            'email': email,
+            'username': email,
+            'first_name': form.cleaned_data['first_name'],
+            'last_name': form.cleaned_data['last_name'],
+            'phone': form.cleaned_data['phone'],
+            'agree_to_terms': form.cleaned_data['agree_to_terms'],
+            'password_hash': hashed_password,
+            'created_at': timezone.now().isoformat(),
+        }
+
+        reg_utils.cache_registration_data(code, email, data)
+        reg_utils.send_confirmation_email(email, code)
+
+        request.session['pending_email'] = email
+
+        return render(request, 'personal_account/verify_email.html', {'email': email})
+
+
+class VerifyRegistrationView(View):
+    template_name = 'personal_account/verify_email.html'
+
+    def get(self, request):
+        email = request.session.get('pending_email', '')
+        return render(request, self.template_name, {'email': email})
+
+    def post(self, request):
+        input_code = request.POST.get('code', '').strip()
+        data = reg_utils.get_registration_data_by_code(input_code)
+        if not data:
+            messages.error(request, "Код неверный или просрочен. Попробуйте запросить код заново.")
+            return render(request, self.template_name, {'email': request.session.get('pending_email', '')})
+
+        email = data['email']
+        if User.objects.filter(email=email).exists():
+            messages.error(request, "Пользователь с таким email уже зарегистрирован.")
+            reg_utils.delete_registration_data(input_code, email)
+            return redirect(reverse_lazy('personal_account:login'))
+
+        try:
+            with transaction.atomic():
+                # создаём пользователя с уже захешированным паролем
+                user = User.objects.create(
+                    username=data['username'],
+                    email=data['email'],
+                    first_name=data['first_name'],
+                    last_name=data['last_name'],
+                    password=data['password_hash'],
+                )
+
+                # надёжно создаём/обновляем профиль одним запросом
+                profile_defaults = {
+                    'phone': data.get('phone', ''),
+                    'agree_to_terms': data.get('agree_to_terms', False),
+                    'can_edit': True,
+                }
+
+                Profile.objects.update_or_create(user=user, defaults=profile_defaults)
+
+        except ValidationError as e:
+            # чистим кеш/сессию, чтобы не оставить недооформленные данные
+            reg_utils.delete_registration_data(input_code, email)
+            request.session.pop('pending_email', None)
+            return redirect(reverse('personal_account:signup'))
+
+        # удаляем данные и логиним пользователя
+        reg_utils.delete_registration_data(input_code, email)
+        request.session.pop('pending_email', None)
+
+        login(request, user)
+        messages.success(request, "Email подтверждён. Заполните, пожалуйста, основные поля профиля.")
+        return redirect(reverse('personal_account:user_profile', kwargs={'username': request.user.username}))
+
+
+class ResendCodeView(View):
+    def post(self, request):
+        email = request.POST.get('email') or request.session.get('pending_email')
+        if not email:
+            messages.error(request, "Email не указан. Пожалуйста, заполните форму регистрации заново.")
+            return redirect(reverse('personal_account:signup'))
+
+        existing_code = reg_utils.get_code_by_email(email)
+        if existing_code:
+            if not reg_utils.can_send_code(email):
+                messages.error(request, "Слишком много попыток отправки. Попробуйте позже.")
+                return redirect(reverse('personal_account:signup'))
+            reg_utils.send_confirmation_email(email, existing_code)
+            messages.info(request, f"Код повторно отправлен на {email}.")
+            request.session['pending_email'] = email
+            return redirect(reverse('personal_account:verify_email'))
+
+        # если данных нет — просим заполнить форму заново
+        messages.error(request, "Данные регистрации не найдены или просрочены. Пожалуйста, заполните форму заново.")
+        return redirect(reverse('personal_account:signup'))
+
 
 
 class UserProfileView(TemplateView):  
@@ -77,12 +196,10 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # если адреса нет — создаём пустой экземпляр, но не сохраняем
         try:
             address = self.request.user.profile_address
         except Profile_address.DoesNotExist:
             address = Profile_address(user=self.request.user)
-        # если уже есть в kwargs (например при POST с ошибками) — используем его
         if 'address_form' not in context:
             context['address_form'] = ProfileAddressForm(instance=address)
         context['dadata_token'] = settings.TOKEN
@@ -91,7 +208,6 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         form = self.get_form()
-        # при POST формируем адресную форму с данными
         try:
             address_inst = request.user.profile_address
         except Profile_address.DoesNotExist:
@@ -113,17 +229,14 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
     def forms_valid(self, form, address_form):
         profile = form.save(commit=False)
 
-        # сохраняем имена в связанном User
         user = profile.user
         user.first_name = form.cleaned_data.get('first_name', user.first_name)
         user.last_name  = form.cleaned_data.get('last_name', user.last_name)
         user.save()
 
-        # сохраняем профиль и блокируем повторное редактирование
         profile.can_edit = False
         profile.save()
 
-        # сохраняем адрес (update_or_create не обязателен, т.к. у нас instance)
         addr = address_form.save(commit=False)
         addr.user = self.request.user
         addr.save()
@@ -132,7 +245,6 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
         return redirect(self.get_success_url())
 
     def form_invalid(self, form, address_form):
-        # показать шаблон с обеими формами и ошибками
         context = self.get_context_data(form=form, address_form=address_form)
         context['dadata_token'] = settings.TOKEN
         return render(self.request, self.template_name, context, {

@@ -50,6 +50,22 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'site_bw.urls'
 
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",  # dev
+        "LOCATION": "unique-snowflake",
+    }
+}
+
+# Для продакшна (рекомендация):
+# CACHES = {
+#   "default": {
+#     "BACKEND": "django_redis.cache.RedisCache",
+#     "LOCATION": "redis://127.0.0.1:6379/1",
+#     "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient"},
+#   }
+# }
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',

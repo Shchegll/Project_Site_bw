@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" href="{% static 'img/fav/favicon.ico' %}" type="image/x-icon">
     
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=2.0">
 </head>
 <body>
   
@@ -28,7 +28,7 @@
             <div class="info-buttons">
                 {% if user.is_authenticated %}
                     <a href="{% url 'personal_account:user_profile' username=user.username %}">Профиль</a>
-                    <form method="post" action="{% url 'personal_account:logout' %}">
+                    <form method="post" action="{% url 'personal_account:logout' %}" class="auth-form">
                         {% csrf_token %}
                         <button type="submit" class="auth-btn">Выйти</button>
                     </form>

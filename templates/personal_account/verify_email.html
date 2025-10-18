@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block content %}
+
+    {% if messages %}
+        <div class="messages-container">
+            {% for message in messages %}
+                <div class="alert {{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="banner_small">
+        <h2>Подтвердите Email</h2>
+        <p>Мы отправили код на {{ email }}. Введите код (действует 15 минут):</p>
+
+        <form method="post" action="{% url 'personal_account:verify_email' %}">
+            {% csrf_token %}
+            <input type="text" name="code" placeholder="Код" required maxlength="6">
+            <button type="submit">Подтвердить</button>
+        </form>
+
+        <form method="post" action="{% url 'personal_account:resend_code' %}">
+            {% csrf_token %}
+            <input type="hidden" name="email" value="{{ email }}">
+            <button type="submit">Выслать код заново</button>
+        </form>
+    </div>
+
+<style>
+    .messages-container {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1050;
+        text-align: center;
+        width: 90vw;            /* важно: не больше ширины экрана */
+        max-width: 600px;
+        box-sizing: border-box;
+        max-height: 80vh;
+        overflow-y: auto;
+        padding: 0 8px;
+    }
+
+    @media (max-width: 576px) {
+        .messages-container { top: auto; bottom: 16px; left: 50%; transform: translateX(-50%); width: calc(100% - 24px); max-width: calc(100% - 24px); }
+    }
+</style>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const alerts = document.querySelectorAll('.alert');
+        
+        alerts.forEach(alert => {
+            setTimeout(() => {
+                alert.classList.add('fade-out');
+                
+                alert.addEventListener('animationend', function() {
+                    alert.remove();
+                    
+                    if (document.querySelectorAll('.alert').length === 0) {
+                        document.querySelector('.messages-container')?.remove();
+                    }
+                });
+            }, 2500);
+        });
+    });
+</script>
+
+{% endblock %}

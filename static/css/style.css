@@ -72,17 +72,22 @@ body {
 .auth-btn {
     color: var(--white);
     text-decoration: none;
-    padding: 8px 15px;
+    padding: 10px 20px; /* Увеличьте отступы */
     border-radius: 4px;
     transition: all 0.3s ease;
     text-align: center;
+    min-width: 140px; /* Добавьте минимальную ширину */
+    display: inline-block;
+    box-sizing: border-box;
+    font-size: 1rem;
+    font-weight: 500;
 }
 
 /* Стили для информационных кнопок */
 .info-buttons a {
     background-color: transparent;
     border: 1px solid rgba(255, 255, 255, 0.3);
-    margin-right: right;
+    flex: 0 0 auto; /* Запрещает растягивание/сжатие */
 }
 
 .info-buttons a:hover {
@@ -93,12 +98,13 @@ body {
 /* Стили для кнопок авторизации */
 .auth-btn {
     background-color: var(--red);
-    border: 1px solid var(--red);
+    border: 5px solid var(--red);
+    flex: 0 0 auto; /* Запрещает растягивание/сжатие */
 }
 
 .auth-btn:hover {
-    background-color: var(--primary-blue);
-    border-color: var(--light-blue);
+    background-color: #b71c1c; /* Более темный красный при наведении */
+    border-color: #b71c1c;
 }
 
 /* Основной контент */
@@ -191,7 +197,7 @@ body {
     }
     
     .auth-form {
-        flex-grow: 1;
-        min-width: 120px;
+        display: inline-block;
+        margin: 0;
     }
 }
