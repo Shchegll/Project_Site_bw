@@ -16,6 +16,7 @@ urlpatterns = [
     path('plug_1/', views.CustomPlugView.as_view(), name="plug_1"),
     path('plug_2/', views.CustomPlugView.as_view(), name="plug_2"),
     path('plug_3/', views.CustomPlugView.as_view(), name="plug_3"),
+    path('help/', views.CustomHelpView.as_view(), name="help"),
     path('password_reset/', auth_views.PasswordResetView.as_view(
         template_name="personal_account/password_reset.html",
         email_template_name="personal_account/password_reset_email.html",

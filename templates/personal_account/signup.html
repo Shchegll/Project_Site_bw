@@ -1,49 +1,61 @@
 {% extends "base.html" %}
 {% block content %}
 
-<style>
-    .auth-buttons_reset {
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-        margin-top: 20px;
-    }
-    .auth-button {
-        text-align: center;
-        text-decoration: none;
-        padding: 10px 20px;
-        border: 1px solid #007bff;
-        color: #007bff;
-        border-radius: 5px;
-        transition: all 0.3s;
-    }
-    .auth-button:hover {
-        background-color: #007bff;
-        color: white;
-        text-decoration: none;
-    }
-</style>
+    <style>
+        .auth-buttons_reset {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .auth-button {
+            text-align: center;
+            text-decoration: none;
+            padding: 10px 20px;
+            border: 1px solid #007bff;
+            color: #007bff;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+        .auth-button:hover {
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+        }
+    </style>
 
-<div class="banner_small">
-    <form method="post"> 
-        {% csrf_token %}  
-        {% if form.non_field_errors %}  
-            <div class="alert alert-danger">  
-                {{ form.non_field_errors }}  
-            </div>  
-        {% endif %}  
-        {% for field in form %}  
-            <p class="form-label">{{ field.label }}</p>  
-            <p>{{ field }}</p>  
-            {% if field.errors %}  
-                <ul class="alert alert-danger">  
-                    {{ field.errors }}  
-                </ul>  
+    <div class="banner">
+        <form method="post"> 
+            {% csrf_token %}  
+            {% if form.non_field_errors %}  
+                <div class="alert alert-danger">  
+                    {{ form.non_field_errors }}  
+                </div>  
             {% endif %}  
-        {% endfor %}
-        <div class="auth-buttons_reset">
-            <button type="submit" class="auth-button">Зарегистрироваться</button>  
+            {% for field in form %}  
+                <p class="form-label">{{ field.label }}</p>  
+                <p>{{ field }}</p>  
+                {% if field.errors %}  
+                    <ul class="alert alert-danger">  
+                        {{ field.errors }}  
+                    </ul>  
+                {% endif %}  
+            {% endfor %}
+            <div class="auth-buttons_reset">
+                <button type="submit" class="auth-button">Зарегистрироваться</button>  
+            </div>
+        </form>
+    </div>
+
+    <div class="banner">
+        <h2>Поддержка</h2>
+        <p>По всем возникающим вопросам просим обращаться по электронной почте:</p>
+            <div style="margin: 15px 10; overflow-wrap: break-word;">
+                <a href="mailto:help@bestwaycoop.ru" class="email-link">
+                    help@bestwaycoop.ru
+                </a>
+            </div>
         </div>
-    </form>
-</div>
+    </div>
+
 {% endblock content %}

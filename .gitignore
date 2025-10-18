@@ -4,4 +4,5 @@
 .env.*
 !.env.example
 __pycache__
-
+media/*
+!media/.gitkeep

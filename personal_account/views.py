@@ -39,6 +39,9 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
 class CustomPlugView(TemplateView):
     template_name = "personal_account/plug.html"
 
+class CustomHelpView(TemplateView):
+    template_name = "personal_account/help.html"
+
 class CustomRequisitesView(TemplateView):
     template_name = "personal_account/requisites.html"
 

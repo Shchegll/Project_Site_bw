@@ -18,13 +18,11 @@
                 <img src="{% static 'img/fav/favicon_cor.png' %}" class="logo">
             </a>
             
-            <!-- Информационные кнопки -->
             <div class="info-buttons">
                 <a href="{% url 'about' %}">Информация о проекте</a>
                 <a href="{% url 'news:news_page' %}">Новости</a>
             </div>
             
-            <!-- Кнопки авторизации -->
             <div class="info-buttons">
                 {% if user.is_authenticated %}
                     <a href="{% url 'personal_account:user_profile' username=user.username %}">Профиль</a>
@@ -43,6 +41,9 @@
     
     <main class="main">
         <div class="container">
+
+            {% include 'messages.html' %}
+
             {% block content %}
             {% endblock content %}
         </div>
