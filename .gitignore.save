@@ -1,0 +1,10 @@
+# Environment variables
+.env
+*.env
+.env.*
+!.env.example
+<<<<<<< HEAD
+__pycache__
+=======
+__pycache__
+>>>>>>> 08ae43effd4cf70a726a66751890c5fc861d55c0
