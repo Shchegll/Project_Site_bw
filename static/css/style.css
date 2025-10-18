@@ -1,9 +1,9 @@
 /* Цветовая палитра */
 :root {
-    --primary-blue: #1e88e5;
+    --primary-blue: rgb(30, 136, 229);
     --dark-blue: #1565c0;
     --red: #d32f2f;
-    --light-blue: #f3a33a;
+    --light-orange: #f3a33a;
     --accent-blue: #82b1ff;
     --text-color: #333;
     --white: #ffffff;
@@ -64,6 +64,31 @@ html, body {
     flex: 0 0 auto;
 }
 
+.auth-buttons_reset {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.auth-button {
+    text-align: center;
+    text-decoration: none;
+    padding: 10px 20px;
+    border: 1px solid var(--primary-blue);
+    background-color: var(--primary-blue);
+    color: white;
+    border-radius: 5px;
+    transition: all 0.3s;
+}
+
+.auth-button:hover {
+    background-color: #379bf3;
+    border-color: #ffa726;
+    color: white;
+    text-decoration: none;
+}
+
 .info-buttons {
     display: flex;
     gap: 10px;
@@ -93,7 +118,7 @@ html, body {
 
 .info-buttons a:hover {
     background-color: rgba(255, 255, 255, 0.1);
-    border-color: var(--light-blue);
+    border-color: var(--light-orange);
 }
 
 /* Стили для кнопок авторизации */
@@ -116,12 +141,13 @@ html, body {
 }
 
 /* Баннер */
+/* Баннер */
 .banner {
     border: 2px solid var(--primary-blue);
     border-radius: 8px;
     padding: 20px;
-    text-align: center;
-    margin: 20px auto;
+    text-align: left; /* Текст по левому краю */
+    margin: 20px auto; /* Блок по центру */
     max-width: 800px;
     background-color: var(--white);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -134,14 +160,28 @@ html, body {
     border: 2px solid var(--primary-blue);
     border-radius: 8px;
     padding: 20px;
-    text-align: center;
-    margin: 20px auto;
+    text-align: left; /* Изменено с center на left */
+    margin: 20px auto; /* Блок остается по центру */
     max-width: 450px;
     background-color: var(--white);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     position: relative;
     padding-bottom: 40px;
     width: calc(100% - 40px);
+}
+
+/* Дополнительные стили для улучшения внешнего вида текста */
+.banner h2, .banner_small h2 {
+    text-align: center; /* Заголовок по центру */
+    margin-bottom: 20px;
+}
+
+.banner h6, .banner_small h6 {
+    text-align: left;
+    line-height: 1.6;
+    margin: 0;
+    white-space: pre-line; /* Сохраняет переносы строк */
+    font-size: 13px; /* Размер шрифта */
 }
 
 .banner-footer {
@@ -168,7 +208,7 @@ html, body {
 }
 
 .footer a:hover {
-    color: var(--light-blue);
+    color: var(--light-orange);
 }
 
 /* Стили ЛК */
