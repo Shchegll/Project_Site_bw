@@ -1,29 +1,5 @@
 {% extends "base.html" %}
 {% block content %}
-
-    <style>
-        .auth-buttons_reset {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            margin-top: 20px;
-        }
-        .auth-button {
-            text-align: center;
-            text-decoration: none;
-            padding: 10px 20px;
-            border: 1px solid #007bff;
-            color: #007bff;
-            border-radius: 5px;
-            transition: all 0.3s;
-        }
-        .auth-button:hover {
-            background-color: #007bff;
-            color: white;
-            text-decoration: none;
-        }
-    </style>
-
     <div class="banner">
         <h2>Подтвердите Email</h2>
         <p>Мы отправили код на {{ email }}. Введите код (действует 15 минут):</p>
@@ -40,5 +16,4 @@
             <button type="submit" class="auth-button">Выслать код заново</button>
         </form>
     </div>
-
 {% endblock %}

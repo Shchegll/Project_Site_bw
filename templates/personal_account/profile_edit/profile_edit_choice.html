@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="banner_small">
+        {% if user.profile.can_edit == "True" %}
+        <div class="auth-buttons_reset">
+            <a href="{% url 'personal_account:profile_edit_personal_information' username=user.username %}?type=1" class="auth-button">Личная информация</a> 
+        </div>
+        <div class="auth-buttons_reset">
+            <a href="{% url 'personal_account:profile_edit_purchase_information' username=user.username %}?type=2" class="auth-button">Информация о покупке</a>  
+        </div>
+        <div class="auth-buttons_reset">
+            <a href="{% url 'personal_account:profile_edit_source_information' username=user.username %}?type=3" class="auth-button">От кого узнали о кооперативе</a>  
+        </div>
+        {% endif %}
+
+        {% if user.profile.can_edit == "One_done" %}
+        <div class="auth-buttons_reset">
+            <a href="{% url 'personal_account:profile_edit_purchase_information' username=user.username %}?type=2" class="auth-button">Информация о покупке</a>  
+        </div>
+        <div class="auth-buttons_reset">
+            <a href="{% url 'personal_account:profile_edit_source_information' username=user.username %}?type=3" class="auth-button">От кого узнали о кооперативе</a>  
+        </div>
+        {% endif %}
+
+        {% if user.profile.can_edit == "Two_done" %}
+        <div class="auth-buttons_reset">
+            <a href="{% url 'personal_account:profile_edit_source_information' username=user.username %}?type=3" class="auth-button">От кого узнали о кооперативе</a>  
+        </div>
+        {% endif %}
+
+        {% if user.profile.can_edit == "Changes_one" %}
+        <div class="auth-buttons_reset">
+            <a href="{% url 'personal_account:profile_edit_personal_information' username=user.username %}?type=1" class="auth-button">Личная информация</a> 
+        </div>
+        {% endif %}
+
+        {% if user.profile.can_edit == "Changes_two" %}
+        <div class="auth-buttons_reset">
+            <a href="{% url 'personal_account:profile_edit_purchase_information' username=user.username %}?type=2" class="auth-button">Информация о покупке</a>
+        </div>
+        {% endif %}
+
+        {% if user.profile.can_edit == "Changes_three" %}
+        <div class="auth-buttons_reset">
+            <a href="{% url 'personal_account:profile_edit_source_information' username=user.username %}?type=3" class="auth-button">От кого узнали о кооперативе</a> 
+        </div>
+        {% endif %}
+        
+        {% if user.profile.can_edit == "False"%}
+        {% endif %}
+        
+        <div class="auth-buttons_reset" style="margin-top: 40px">
+            <a href="{% url 'personal_account:user_profile' username=user.username %}" class="auth-button">Назад</a>  
+        </div>
+    </div>
+{% endblock content %}

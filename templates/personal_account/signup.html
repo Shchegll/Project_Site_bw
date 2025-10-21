@@ -1,24 +1,37 @@
 {% extends "base.html" %}
-{% load static %}
 {% block content %}
+    {% if form.errors %}
+    <div class="alert alert-danger">
+        {% for field in form %}
+            {% for error in field.errors %}
+                <p>{{ error }}</p>
+            {% endfor %}
+        {% endfor %}
+        {% for error in form.non_field_errors %}
+            <p>{{ error }}</p>
+        {% endfor %}
+    </div>
+    {% endif %}
     <div class="banner_small">
-        <link rel="stylesheet" href="{% static 'css/style.css' %}?v=3.0">
         <form method="post"> 
             {% csrf_token %}  
-            {% if form.non_field_errors %}  
-                <div class="alert alert-danger">  
-                    {{ form.non_field_errors }}  
-                </div>  
-            {% endif %}  
-            {% for field in form %}  
-                <p class="form-label">{{ field.label }}</p>  
-                <p>{{ field }}</p>  
-                {% if field.errors %}  
-                    <ul class="alert alert-danger">  
-                        {{ field.errors }}  
-                    </ul>  
-                {% endif %}  
+            {% for field in form %}
+                {% if not forloop.last %}
+                <p class="form-label"> {{ field.label }}</p>  
+                <p>{{ field }}</p>
+                {% endif %}
             {% endfor %}
+
+            <div class="form-label" style="display: inline;">
+                {{ form.agree_to_terms }}
+                <span>
+                    Я согласен с 
+                    <a href="/static/img/approval/membership_agreement.pdf" target="_blank" class="terms-link">
+                        условиями обработки данных
+                    </a>
+                </span>
+            </div>
+
             <div class="auth-buttons_reset">
                 <button type="submit" class="auth-button">Зарегистрироваться</button>  
             </div>
@@ -35,5 +48,4 @@
             </div>
         </div>
     </div>
-
 {% endblock content %}

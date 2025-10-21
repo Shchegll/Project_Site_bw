@@ -1,6 +1,6 @@
 /* Цветовая палитра */
 :root {
-    --primary-blue: rgb(30, 136, 229);
+    --primary-blue: oklab(61.789% -0.05462 -0.15766);
     --dark-blue: #1565c0;
     --red: #d32f2f;
     --light-orange: #f3a33a;

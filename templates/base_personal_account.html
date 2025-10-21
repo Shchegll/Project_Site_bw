@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" href="{% static 'img/fav/favicon.ico' %}" type="image/x-icon">
-    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=2.0">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=3.0">
 </head>
 <body>
   
@@ -50,15 +50,16 @@
                         <button data-url="{% url 'personal_account:user_profile' username=user.username %}" class="menu-item active">Профиль</button>
                         <button id="payment-schedule-btn" class="menu-item">Мои платежи</button>
                         <div id="payment-schedule-submenu" class="submenu">
+                            <button class="submenu-item">График платежей</button>
                             <button class="submenu-item">Исторя платежей</button>
                             <button class="submenu-item">Сделать платёж</button>
                             <button class="submenu-item" data-url="{% url 'personal_account:requisites' %}">Реквизиты</button>
                             <button class="submenu-item" data-url="{% url 'donation' %}">Добровольное пожертвование</button>
                         </div>
-                        <button data-url="{% url 'personal_account:plug' %}" class="menu-item">График платежей</button>
-                        <button data-url="{% url 'personal_account:plug_1' %}" class="menu-item">Очередь</button>
-                        <button data-url="{% url 'personal_account:plug_2' %}" class="menu-item">Долги</button>
-                        <button data-url="{% url 'personal_account:plug_3' %}" class="menu-item">Уведомления</button>
+                        <button class="menu-item">Партнёрство</button>
+                        <button class="menu-item">Очередь</button>
+                        <button class="menu-item">Долги</button>
+                        <button class="menu-item">Уведомления</button>
                         <button data-url="{% url 'personal_account:help' %}" class="menu-item">Помощь</button>
                     </div>
                 </div>
@@ -280,4 +281,36 @@
             }
         });
     });
+    function formatNumberWithSpaces(number) {
+        return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    }
+
+    function formatPriceField(selector) {
+        const element = document.querySelector(selector);
+        if (!element) return;
+        
+        let text = element.textContent.trim();
+        const match = text.match(/([\d.,]+)\s*руб/);
+        
+        if (match) {
+            let numberStr = match[1];
+            numberStr = numberStr.replace('.', ',');
+            
+            const parts = numberStr.split(',');
+            let integerPart = parts[0].replace(/\s/g, '');
+            let decimalPart = parts[1] ? '.' + parts[1] : '';
+            
+            integerPart = formatNumberWithSpaces(integerPart);
+            const formattedNumber = integerPart + decimalPart;
+            
+            element.textContent = text.replace(match[0], formattedNumber + ' руб');
+        }
+    }
+
+    function formatAllPrices() {
+        formatPriceField('#priceMain');
+        formatPriceField('#priceQueue');
+    }
+
+    document.addEventListener('DOMContentLoaded', formatAllPrices);
 </script>

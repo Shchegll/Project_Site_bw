@@ -3,8 +3,8 @@
     <div class="content">
         <div class="profile-header">
             <h2>Ваш профиль - {{ user_profile.last_name }} {{ user_profile.first_name }}</h2>
-            <h3 style="font-weight: normal;">{{ user.profile.id_coor }}</h3>    
-            <h5>Статус - <strong>{{ user.profile.status }}</strong></h5>
+            <h3 style="font-weight: normal;">{{ user.profile_queue.id_coor }}</h3>    
+            <h5>Статус - <strong>{{ user.profile_queue.status }}</strong></h5>
         </div>
 
         <div class="info-section">
@@ -35,22 +35,25 @@
 
             <div class="info-row">
                 <div class="info-label">Дата рождения:</div>
-                <div class="info-value">{{ user.profile.birth_date }}</div>
+                {% if user.profile.birth_date == None %}
+                {% else %}
+                    <div class="info-value">{{ user.profile.birth_date }}</div>
+                {% endif %}
             </div>
 
             <div class="info-row">
                 <div class="info-label">Тип покупки:</div>
-                <div class="info-value">{{ user.profile.type_of_purchase }}</div>
+                <div class="info-value">{{ user.profile_queue.type_of_purchase }}</div>
             </div>
 
             <div class="info-row">
                 <div class="info-label">Стоимость объекта недвижимости:</div>
-                <div class="info-value">{{ user.profile.price }} (руб)</div>
+                <div class="info-value" id="priceMain">{{ user.profile_queue.price }} руб</div>
             </div>
 
             <div class="info-row">
                 <div class="info-label">Стоимость объекта недвижимости при переходе в очередь:</div>
-                <div class="info-value">{{ user.profile.price_in_queue }} (руб)</div>
+                <div class="info-value" id="priceQueue">{{ user.profile_queue.price_in_queue }} руб</div>
             </div>
 
             <div class="info-row">
@@ -69,24 +72,28 @@
             </div>
 
             <div class="info-row">
-                <div class="info-label">Фото главной страницы:</div>
-                {% if user.profile.document_photo_main %}✓{% else %}✗{% endif %}
-            </div>
-
-            <div class="info-row">
-                <div class="info-label">Фото прописки:</div>
-                {% if user.profile.document_photo_reg %}✓{% else %}✗{% endif %}
-            </div>
-
-            <div class="info-row">
                 <div class="info-label">Дата выдачи:</div>
-                <div class="info-value">{{ user.profile.date_of_issue }}</div>
+                {% if user.profile.birth_date == None %}
+                {% else %}
+                    <div class="info-value">{{ user.profile.date_of_issue }}</div>
+                {% endif %}
             </div>
 
-            <div class="info-row_next">
+            <div class="info-row">
                 <div class="info-label">Орган, выдавший документ:</div>
                 <div class="info-value">{{ user.profile.issued_by_whom }}</div>
             </div>
+
+            <div class="info-row">
+                <div class="info-label">Фото главной страницы:</div>
+                {% if user.profile.document_photo_main %}Загружена{% else %}✗{% endif %}
+            </div>
+
+            <div class="info-row_next">
+                <div class="info-label">Фото прописки:</div>
+                {% if user.profile.document_photo_reg %}Загружена{% else %}✗{% endif %}
+            </div>
+
         </div>
 
         <div class="profile-header">
@@ -94,13 +101,13 @@
         </div>
         <div class="info-section">
             <div class="info-row">
-                <div class="info-label">Фамилия и имя, пригласившего вас, партнёра:</div>
-                <div class="info-value">{{ user.profile.parther_name }}</div>
+                <div class="info-label">Фамилия и имя пригласившего вас партнёра:</div>
+                <div class="info-value">{{ user.profile_invitee.parther_name }}</div>
             </div>
             
             <div class="info-row_next">
                 <div class="info-label">Номер телефона пригласителя:</div>
-                <div class="info-value">{{ user.profile.parther_phone }}</div>
+                <div class="info-value">{{ user.profile_invitee.parther_phone }}</div>
             </div>
         </div>
 
@@ -110,42 +117,42 @@
         <div class="info-section">
             <div class="info-row">
                 <div class="info-label">Страна:</div>
-                <div class="info-value">{{ user.profile_address.reg_country }}</div>
+                <div class="info-value">{{ user.profile_addres.reg_country }}</div>
             </div>
             
             <div class="info-row">
                 <div class="info-label">Регион:</div>
-                <div class="info-value">{{ user.profile_address.reg_region }}</div>
+                <div class="info-value">{{ user.profile_addres.reg_region }}</div>
             </div>
             
             <div class="info-row">
                 <div class="info-label">Город:</div>
-                <div class="info-value">{{ user.profile_address.reg_city }}</div>
+                <div class="info-value">{{ user.profile_addres.reg_city }}</div>
             </div>
             
             <div class="info-row">
                 <div class="info-label">Полный адрес:</div>
-                <div class="info-value">{{ user.profile_address.reg_address }}</div>
+                <div class="info-value">{{ user.profile_addres.reg_address }}</div>
             </div>
             
             <div class="info-row">
                 <div class="info-label">Улица:</div>
-                <div class="info-value">{{ user.profile_address.reg_street }}</div>
+                <div class="info-value">{{ user.profile_addres.reg_street }}</div>
             </div>
 
             <div class="info-row">
                 <div class="info-label">Дом:</div>
-                <div class="info-value">{{ user.profile_address.reg_house }}</div>
+                <div class="info-value">{{ user.profile_addres.reg_house }}</div>
             </div>
             
             <div class="info-row">
                 <div class="info-label">Квартира:</div>
-                <div class="info-value">{{ user.profile_address.reg_apartament }}</div>
+                <div class="info-value">{{ user.profile_addres.reg_apartament }}</div>
             </div>
 
             <div class="info-row_next">
                 <div class="info-label">Почтовый индекс:</div>
-                <div class="info-value">{{ user.profile_address.reg_postal_code }}</div>
+                <div class="info-value">{{ user.profile_addres.reg_postal_code }}</div>
             </div>
         </div>
 
@@ -155,48 +162,48 @@
         <div class="info-section">
             <div class="info-row">
                 <div class="info-label">Страна:</div>
-                <div class="info-value">{{ user.profile_address.act_country }}</div>
+                <div class="info-value">{{ user.profile_addres.act_country }}</div>
             </div>
             
             <div class="info-row">
                 <div class="info-label">Регион:</div>
-                <div class="info-value">{{ user.profile_address.act_region }}</div>
+                <div class="info-value">{{ user.profile_addres.act_region }}</div>
             </div>
             
             <div class="info-row">
                 <div class="info-label">Город:</div>
-                <div class="info-value">{{ user.profile_address.act_city }}</div>
+                <div class="info-value">{{ user.profile_addres.act_city }}</div>
             </div>
             
             <div class="info-row">
                 <div class="info-label">Полный адрес:</div>
-                <div class="info-value">{{ user.profile_address.act_address }}</div>
+                <div class="info-value">{{ user.profile_addres.act_address }}</div>
             </div>
             
             <div class="info-row">
                 <div class="info-label">Улица:</div>
-                <div class="info-value">{{ user.profile_address.act_street }}</div>
+                <div class="info-value">{{ user.profile_addres.act_street }}</div>
             </div>
 
             <div class="info-row">
                 <div class="info-label">Дом:</div>
-                <div class="info-value">{{ user.profile_address.act_house }}</div>
+                <div class="info-value">{{ user.profile_addres.act_house }}</div>
             </div>
 
             <div class="info-row">
                 <div class="info-label">Квартира:</div>
-                <div class="info-value">{{ user.profile_address.act_apartament }}</div>
+                <div class="info-value">{{ user.profile_addres.act_apartament }}</div>
             </div>
             
             <div class="info-row_next">
                 <div class="info-label">Почтовый индекс:</div>
-                <div class="info-value">{{ user.profile_address.act_postal_code }}</div>
+                <div class="info-value">{{ user.profile_addres.act_postal_code }}</div>
             </div>
         </div>
         
         {% if user_profile == user %}
             <div class="profile-actions">
-                <a class="edit-button" href="profile_edit">Настройки профиля</a>
+                <a class="edit-button" href="profile_edit_choice">Редактирование профиля</a>
             </div>
         {% endif %}
     </div>

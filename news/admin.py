@@ -1,6 +1,10 @@
 from django.contrib import admin
 from .models import News
 
+admin.site.site_header = "Панель администратора"
+admin.site.index_title = "Управление сайтом"
+
+
 @admin.register(News)
 class NewsAdmin(admin.ModelAdmin):
     # Поля, которые отображаются в списке

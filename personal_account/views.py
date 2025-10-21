@@ -8,9 +8,9 @@ from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404, redirect, render
 from django.http import Http404
 from django.contrib.auth.mixins import LoginRequiredMixin
-from .forms import LoginForm, RegistrationForm, ProfileUpdateForm, ProfileAddressForm
+from .forms import LoginForm, RegistrationForm, ProfileUpdateForm, ProfileAddresForm, ProfileInviteeForm, ProfileQueueForm
 from django.core.exceptions import ValidationError
-from .models import Profile, Profile_address
+from .models import Profile, Profile_addres, Profile_invitee, Profile_queue
 from django.conf import settings
 from django.contrib.auth import login
 from django.contrib.auth.hashers import make_password
@@ -32,15 +32,19 @@ class CustomLoginView(LoginView):
     def get_success_url(self):
         return reverse_lazy('home')
 
+
 class CustomPasswordResetConfirmView(PasswordResetConfirmView):
     template_name = "personal_account/password_reset_confirm.html"
     success_url = reverse_lazy('personal_account:password_reset_complete')
 
+
 class CustomPlugView(TemplateView):
     template_name = "personal_account/plug.html"
 
+
 class CustomHelpView(TemplateView):
     template_name = "personal_account/help.html"
+
 
 class CustomRequisitesView(TemplateView):
     template_name = "personal_account/requisites.html"
@@ -113,7 +117,6 @@ class VerifyRegistrationView(View):
 
         try:
             with transaction.atomic():
-                # создаём пользователя с уже захешированным паролем
                 user = User.objects.create(
                     username=data['username'],
                     email=data['email'],
@@ -122,7 +125,6 @@ class VerifyRegistrationView(View):
                     password=data['password_hash'],
                 )
 
-                # надёжно создаём/обновляем профиль одним запросом
                 profile_defaults = {
                     'phone': data.get('phone', ''),
                     'agree_to_terms': data.get('agree_to_terms', False),
@@ -132,12 +134,10 @@ class VerifyRegistrationView(View):
                 Profile.objects.update_or_create(user=user, defaults=profile_defaults)
 
         except ValidationError as e:
-            # чистим кеш/сессию, чтобы не оставить недооформленные данные
             reg_utils.delete_registration_data(input_code, email)
             request.session.pop('pending_email', None)
             return redirect(reverse('personal_account:signup'))
 
-        # удаляем данные и логиним пользователя
         reg_utils.delete_registration_data(input_code, email)
         request.session.pop('pending_email', None)
 
@@ -163,29 +163,39 @@ class ResendCodeView(View):
             request.session['pending_email'] = email
             return redirect(reverse('personal_account:verify_email'))
 
-        # если данных нет — просим заполнить форму заново
         messages.error(request, "Данные регистрации не найдены или просрочены. Пожалуйста, заполните форму заново.")
         return redirect(reverse('personal_account:signup'))
 
 
+class UserProfileView(TemplateView):
+    template_name = 'personal_account/profile_page.html'
 
-class UserProfileView(TemplateView):  
-    template_name = 'personal_account/profile_page.html'  
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        try:
+            user = get_object_or_404(User, username=self.kwargs.get('username'))
+        except User.DoesNotExist:
+            raise Http404("Пользователь не найден")
+        context['user_profile'] = user
+        context['title'] = f'Профиль пользователя {user}'
+        return context
 
-    def get_context_data(self, **kwargs):  
-        context = super().get_context_data(**kwargs)  
-        try:  
-            user = get_object_or_404(User, username=self.kwargs.get('username'))  
-        except User.DoesNotExist:  
-            raise Http404("Пользователь не найден")  
-        context['user_profile'] = user  
-        context['title'] = f'Профиль пользователя {user}'  
-        return context  
 
-class ProfileUpdateView(LoginRequiredMixin, UpdateView):
+class ProfileUpdateChoiceView(LoginRequiredMixin, TemplateView):
+    template_name = 'personal_account/profile_edit/profile_edit_choice.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        profile = request.user.profile
+        if profile.can_edit == "False":
+            messages.error(request, "Редактирование заблокировано. При ошибке обратитесь к администратору.")
+            return redirect("personal_account:user_profile", username=request.user.username)
+        return super().dispatch(request, *args, **kwargs)
+
+
+class PersonalInformationUpdateView(LoginRequiredMixin, UpdateView):
     model = Profile
     form_class = ProfileUpdateForm
-    template_name = 'personal_account/profile_edit.html'
+    template_name = 'personal_account/profile_edit/profile_edit_personal_information.html'
 
     def get_object(self, queryset=None):
         return self.request.user.profile
@@ -193,18 +203,18 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
     def dispatch(self, request, *args, **kwargs):
         profile = self.get_object()
         if not profile.can_edit:
-            messages.error(request, "Редактирование заблокировано. Обратитесь к администратору.")
+            messages.error(request, "Редактирование заблокировано. При ошибке обратитесь к администратору.")
             return redirect("personal_account:user_profile", username=request.user.username)
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         try:
-            address = self.request.user.profile_address
-        except Profile_address.DoesNotExist:
-            address = Profile_address(user=self.request.user)
+            address = self.request.user.profile_addres
+        except Profile_addres.DoesNotExist:
+            address = Profile_addres(user=self.request.user)
         if 'address_form' not in context:
-            context['address_form'] = ProfileAddressForm(instance=address)
+            context['address_form'] = ProfileAddresForm(instance=address)
         context['dadata_token'] = settings.TOKEN
         return context
 
@@ -212,10 +222,10 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
         self.object = self.get_object()
         form = self.get_form()
         try:
-            address_inst = request.user.profile_address
-        except Profile_address.DoesNotExist:
-            address_inst = Profile_address(user=request.user)
-        address_form = ProfileAddressForm(request.POST, instance=address_inst)
+            address_inst = request.user.profile_addres
+        except Profile_addres.DoesNotExist:
+            address_inst = Profile_addres(user=request.user)
+        address_form = ProfileAddresForm(request.POST, instance=address_inst)
 
         if form.is_valid() and address_form.is_valid():
             return self.forms_valid(form, address_form)
@@ -237,23 +247,146 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
         user.last_name  = form.cleaned_data.get('last_name', user.last_name)
         user.save()
 
-        profile.can_edit = False
-        profile.save()
+        if profile.can_edit == "True":
+            profile.can_edit = "One_done"
 
-        addr = address_form.save(commit=False)
-        addr.user = self.request.user
-        addr.save()
+            profile.save()
 
-        messages.success(self.request, "Данные успешно обновлены. Повторное редактирование запрещено.")
-        return redirect(self.get_success_url())
+            addr = address_form.save(commit=False)
+            addr.user = self.request.user
+            addr.save()
 
-    def form_invalid(self, form, address_form):
+            messages.success(self.request, "Личные данные успешно обновлены. Заполните следующий блок")
+            return redirect(self.get_success_url())
+
+        if profile.can_edit == "Changes_one":
+            profile.can_edit = "False"
+
+            profile.save()
+
+            addr = address_form.save(commit=False)
+            addr.user = self.request.user
+            addr.save()
+
+            messages.success(self.request, "Личные данные успешно обновлены.")
+            return redirect(self.get_success_url_else())
+
+        else:
+            profile.can_edit = "False"
+
+            profile.save()
+
+            addr = address_form.save(commit=False)
+            addr.user = self.request.user
+            addr.save()
+
+            messages.success(self.request, "Личные данные успешно обновлены.")
+            return redirect(self.get_success_url_else())
+
+    def form_invalid(self, form, address_form=None):
         context = self.get_context_data(form=form, address_form=address_form)
         context['dadata_token'] = settings.TOKEN
-        return render(self.request, self.template_name, context, {
-            'form': form,
-            'address_form': address_form
-        })
+        return self.render_to_response(context)
+
+    def get_success_url_else(self):
+        return reverse('personal_account:user_profile', kwargs={'username': self.request.user.username})
 
     def get_success_url(self):
+        return reverse('personal_account:profile_edit_choice', kwargs={'username': self.request.user.username})
+
+
+class PurchaseInformationUpdateView(LoginRequiredMixin, UpdateView):
+    model = Profile_queue
+    form_class = ProfileQueueForm
+    template_name = 'personal_account/profile_edit/profile_edit_purchase_information.html'
+
+    def get_object(self, queryset=None):
+        try:
+            return self.request.user.profile_queue
+        except Profile_queue.DoesNotExist:
+            return Profile_queue.objects.create(user=self.request.user)
+
+    def dispatch(self, request, *args, **kwargs):
+        profile = request.user.profile
+        if profile.can_edit == "False":
+            messages.error(request, "Редактирование заблокировано. При ошибке обратитесь к администратору.")
+            return redirect(self.get_success_url_else())
+        if profile.can_edit == "True":
+            messages.error(request, "Сначала заполните предыдущий блок")
+            return redirect(self.get_success_url())
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_success_url_else(self):
         return reverse('personal_account:user_profile', kwargs={'username': self.request.user.username})
+
+    def get_success_url(self):
+        return reverse('personal_account:profile_edit_choice', kwargs={'username': self.request.user.username})
+
+    def form_valid(self, form):
+        self.object = form.save()
+        profile = self.request.user.profile
+
+        if profile.can_edit == "Changes_two":
+            profile.can_edit = "False"
+            profile.save()
+            messages.success(self.request, "Информация о покупке успешно обновлена")
+            return redirect(self.get_success_url())
+
+        else:
+            profile.can_edit = "Two_done"
+            profile.save()
+            messages.success(self.request, "Информация о покупке успешно обновлена.")
+            return redirect(self.get_success_url())
+
+
+class SourceInformationnUpdateView(LoginRequiredMixin, UpdateView):
+    model = Profile_invitee
+    form_class = ProfileInviteeForm
+    template_name = 'personal_account/profile_edit/profile_edit_source_information.html'
+
+    def get_object(self, queryset=None):
+        try:
+            return self.request.user.profile_invitee
+        except Profile_invitee.DoesNotExist:
+            return Profile_invitee.objects.create(user=self.request.user)
+
+    def dispatch(self, request, *args, **kwargs):
+        profile = request.user.profile
+        if profile.can_edit == "False":
+            messages.error(request, "Редактирование заблокировано. При ошибке обратитесь к администратору.")
+            return redirect(self.get_success_url_else())
+        if profile.can_edit == "One_done":
+            messages.error(request, "Сначала заполните предыдущий блок")
+            return redirect(self.get_success_url())
+        if profile.can_edit == "True":
+            messages.error(request, "Сначала заполните предыдущий блок")
+            return redirect(self.get_success_url())
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_success_url_else(self):
+        return reverse('personal_account:user_profile', kwargs={'username': self.request.user.username})
+
+    def get_success_url(self):
+        return reverse('personal_account:profile_edit_choice', kwargs={'username': self.request.user.username})
+
+    def form_valid(self, form):
+        self.object = form.save()
+        profile = self.request.user.profile
+
+        if profile.can_edit == "Two_done":
+            profile.can_edit = "False"
+            profile.save()
+            messages.success(self.request, "Вся информация успешно обновлена")
+            return redirect(self.get_success_url())
+
+        elif profile.can_edit == "Changes_three":
+            profile.can_edit = "False"
+            profile.save()
+            messages.success(self.request, "Информация о пригласившем успешно обновлена.")
+            return redirect(self.get_success_url_else())
+
+        else:
+            profile.can_edit = "False"
+            profile.save()
+            messages.success(self.request, "Информация о пригласившем успешно обновлена.")
+            return redirect(self.get_success_url_else())

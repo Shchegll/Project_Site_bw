@@ -1,8 +1,7 @@
 {% extends "base.html" %}
-{% comment %} .as_hidden - для полей неведимок {% endcomment %}
 {% block content %}
     <div class="banner">
-        <h2>Редактирование личной информации</h2>
+        <h2>Редактирование</h2>
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
             <div class="form-section">
@@ -34,11 +33,6 @@
                     </div>
 
                     <div class="form-group">
-                        {{ form.id_coor.label_tag }}
-                        {{ form.id_coor }}
-                    </div>
-
-                    <div class="form-group">
                         {{ form.document_type.label_tag }}
                         {{ form.document_type }}
                     </div>
@@ -64,9 +58,6 @@
                     </div>
 
                     <div class="form-group">
-                    </div>
-
-                    <div class="form-group">
                         {{ form.document_photo_main.label_tag }}
                         {{ form.document_photo_main }}
                     </div>
@@ -79,45 +70,11 @@
             </div>
 
             <div class="form-section">
-                <h3>Информация о покупке</h3>
-                <div class="form-row">
-                    <div class="form-group">
-                        {{ form.type_of_purchase.label_tag }}
-                        {{ form.type_of_purchase }}
-                    </div>
-
-                    <div class="form-group">
-                        {{ form.price.label_tag }}
-                        {{ form.price }}
-                    </div>
-                    
-                    <div class="form-group">
-                        {{ form.price_in_queue.label_tag }}
-                        {{ form.price_in_queue }}
-                    </div>
-                </div>
-            </div>
-
-            <div class="form-section">
-                <h3>От кого вы узнали о кооперативе</h3>
-                <div class="form-row">
-                    <div class="form-group">
-                        {{ form.parther_name.label_tag }}
-                        {{ form.parther_name }}
-                    </div>
-                    <div class="form-group">
-                        {{ form.parther_phone.label_tag }}
-                        {{ form.parther_phone }}
-                    </div>
-                </div>
-            </div>
-
-            <div class="form-section">
                 <h3>Адрес регистрации</h3>
                 <div class="form-row">
                     <div class="form-group_wide">
                         <label>Поиск адреса:</label>
-                        <input type="text" id="reg-address-search" class="form-control" placeholder="Введите полный адрес...">
+                        <input type="text" id="reg-address-search" class="form-control" placeholder="Введите полный адрес в данную строку ...">
                     </div>
                     <div class="form-group">
                         {{ address_form.reg_address.label_tag }}
@@ -204,20 +161,31 @@
             </div>
             <button type="submit" class="btn btn-primary">Сохранить</button>
 
-            {% if form.errors %}
-            <div class="banner error">
-                <ul>
-                {% for field in form %}
-                    {% for error in field.errors %}
-                        <li>{{ error }}</li>
-                    {% endfor %}
-                {% endfor %}
-                {% for error in form.non_field_errors %}
+        {% if form.errors or address_form.errors %}
+        <div class="banner error">
+            <ul>
+            {% for field in form %}
+                {% for error in field.errors %}
                     <li>{{ error }}</li>
                 {% endfor %}
-                </ul>
-            </div>
-            {% endif %}
+            {% endfor %}
+            
+            {% for field in address_form %}
+                {% for error in field.errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            {% endfor %}
+            
+            {% for error in form.non_field_errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+            
+            {% for error in address_form.non_field_errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
         </form>
     </div>
 
@@ -337,9 +305,7 @@
 
             checkbox.addEventListener('change', toggleAddressVisibility);
         });
-    </script>
 
-    <script>
         $(document).ready(function() {
             const token = '{{ dadata_token }}';
             
@@ -403,44 +369,7 @@
                     });
                 }
             }, 180);
-        });
-    </script>
-    
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const el = document.querySelector('input[name="id_coor"]');
-            if (!el) return;
-            
-            el.value = el.value || 'COOP-';
-            
-            el.addEventListener('input', (e) => {
-                const nums = e.target.value.replace('COOP-', '').replace(/\D/g, '').slice(0,18);
-                e.target.value = `COOP-${nums.slice(0,8)}${nums.length>8?'-'+nums.slice(8,14):''}${nums.length>14?'-'+nums.slice(14,18):''}`;
-            });
-            
-            el.addEventListener('keydown', (e) => {
-                const pos = e.target.selectionStart;
-                const value = e.target.value;
-                
-                if (e.key === 'Backspace') {
-                    if (value[pos - 1] === '-' && pos > 0) {
-                        e.preventDefault();
-                        const newValue = value.slice(0, pos - 2) + value.slice(pos - 1);
-                        e.target.value = newValue;
-                        e.target.setSelectionRange(pos - 2, pos - 2);
-                    }
-                }
-                
-                if (e.key === 'Delete') {
-                    if (value[pos] === '-' && pos < value.length) {
-                        e.preventDefault();
-                        const newValue = value.slice(0, pos + 1) + value.slice(pos + 2);
-                        e.target.value = newValue;
-                        e.target.setSelectionRange(pos, pos);
-                    }
-                }
-            });
-        });
+        });    
 
         document.addEventListener('DOMContentLoaded', () => {
             const passportInput = document.querySelector('input[name="id_document"]');
@@ -482,21 +411,7 @@
         });
 
         document.addEventListener('DOMContentLoaded', () => {
-            const sourceInput = document.querySelector('input[name="price"]');
-            const resultInput = document.querySelector('input[name="price_in_queue"]');
-            
-            if (!sourceInput || !resultInput) return;
-            
-            sourceInput.addEventListener('input', (e) => {
-                const value = parseFloat(e.target.value.replace(/[^\d.,]/g, '').replace(',', '.')) || 0;
-                const thirtyFivePercent = value * 0.35;
-                
-                resultInput.value = thirtyFivePercent.toFixed(2);
-            });
-        });
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const phoneInputs = document.querySelectorAll('input[name="phone"], input[name="parther_phone"]');
+            const phoneInputs = document.querySelectorAll('input[name="phone"]');
             
             phoneInputs.forEach(phoneInput => {
                 phoneInput.value = phoneInput.value || '+7';
@@ -534,6 +449,159 @@
             });
         });
 
+        document.addEventListener('DOMContentLoaded', function() {
+            function isAllowedKey(event) {
+                if (event.ctrlKey || event.altKey || event.metaKey) return true;
+                
+                if (event.key.length > 1) return true;
+                
+                const russianLetters = /[а-яА-ЯёЁ]/;
+                if (russianLetters.test(event.key)) return true;
+                                
+                const navigationKeys = [
+                    'Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 
+                    'ArrowUp', 'ArrowDown', 'Tab', 'Home', 'End'
+                ];
+                if (navigationKeys.includes(event.key)) return true;
+                
+                return false;
+            }
+            
+            const lastNameField = document.querySelector('#{{ form.last_name.id_for_label }}');
+            const firstNameField = document.querySelector('#{{ form.first_name.id_for_label }}');
+            const surnameField = document.querySelector('#{{ form.surname.id_for_label }}');
+            
+            [lastNameField, firstNameField, surnameField].forEach(field => {
+                if (field) {
+                    field.addEventListener('keydown', function(event) {
+                        if (!isAllowedKey(event)) {
+                            event.preventDefault();
+                            
+                            showTempWarning(this, 'Только русские буквы');
+                        }
+                    });
+                    
+                    field.addEventListener('contextmenu', function(event) {
+                    });
+                    
+                    field.addEventListener('paste', function(event) {
+                        event.preventDefault();
+                        
+                        const pastedText = (event.clipboardData || window.clipboardData).getData('text');
+                        
+                        const filteredText = pastedText.replace(/[^а-яА-ЯёЁ]/g, '');
+                        
+                        const start = this.selectionStart;
+                        const end = this.selectionEnd;
+                        const currentValue = this.value;
+                        
+                        this.value = currentValue.substring(0, start) + filteredText + currentValue.substring(end);
+                        
+                        this.selectionStart = this.selectionEnd = start + filteredText.length;
+                        
+                        if (filteredText.length < pastedText.length) {
+                            showTempWarning(this, 'Вставлены только русские буквы');
+                        }
+                    });
+                }
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            function isAllowedKeyForInn(event) {
+                if (event.ctrlKey || event.altKey || event.metaKey) return true;
+                if (event.key.length > 1) return true;
+                
+                const digits = /[0-9]/;
+                if (digits.test(event.key)) return true;
+                
+                const navigationKeys = [
+                    'Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 
+                    'ArrowUp', 'ArrowDown', 'Tab', 'Home', 'End'
+                ];
+                return navigationKeys.includes(event.key);
+            }
+            
+            const innField = document.querySelector('#{{ form.inn.id_for_label }}');
+            
+            if (innField) {
+                innField.addEventListener('keydown', function(event) {
+                    if (!isAllowedKeyForInn(event)) {
+                        event.preventDefault();
+                    }
+                });
+                
+                innField.addEventListener('paste', function(event) {
+                    event.preventDefault();
+                    const pastedText = (event.clipboardData || window.clipboardData).getData('text');
+                    const filteredText = pastedText.replace(/\D/g, '');
+                    
+                    const start = this.selectionStart;
+                    const end = this.selectionEnd;
+                    this.value = this.value.substring(0, start) + filteredText + this.value.substring(end);
+                    this.selectionStart = this.selectionEnd = start + filteredText.length;
+                });
+                
+                innField.addEventListener('input', function() {
+                    if (this.value.length > 12) {
+                        this.value = this.value.slice(0, 12);
+                    }
+                });
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            function isAllowedKeyForIssuedBy(event) {
+                if (event.ctrlKey || event.altKey || event.metaKey) return true;
+                
+                if (event.key.length > 1) return true;
+                
+                const russianLetters = /[а-яА-ЯёЁ\s]/;
+                if (russianLetters.test(event.key)) return true;
+                
+                if (event.key === ' ') return true;
+            
+                const navigationKeys = [
+                    'Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 
+                    'ArrowUp', 'ArrowDown', 'Tab', 'Home', 'End'
+                ];
+                if (navigationKeys.includes(event.key)) return true;
+                
+                return false;
+            }
+            
+            const issuedByField = document.querySelector('#{{ form.issued_by_whom.id_for_label }}');
+            
+            if (issuedByField) {
+                issuedByField.addEventListener('keydown', function(event) {
+                    if (!isAllowedKeyForIssuedBy(event)) {
+                        event.preventDefault();
+                        
+                        showTempWarningForIssuedBy(this, 'Только русские буквы, пробелы и знаки препинания');
+                    }
+                });
+                
+                issuedByField.addEventListener('paste', function(event) {
+                    event.preventDefault();
+                    
+                    const pastedText = (event.clipboardData || window.clipboardData).getData('text');
+                    
+                    const filteredText = pastedText.replace(/[^а-яА-ЯёЁ\s]/g, '');
+                    
+                    const start = this.selectionStart;
+                    const end = this.selectionEnd;
+                    const currentValue = this.value;
+                    
+                    this.value = currentValue.substring(0, start) + filteredText + currentValue.substring(end);
+                    
+                    this.selectionStart = this.selectionEnd = start + filteredText.length;
+                    
+                    if (filteredText.length < pastedText.length) {
+                        showTempWarningForIssuedBy(this, 'Вставлены только разрешенные символы');
+                    }
+                });
+            }
+        });
     </script>
 
 {% endblock content %}
