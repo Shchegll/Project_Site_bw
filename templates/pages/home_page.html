@@ -1,17 +1,200 @@
 {% extends "base.html" %}
 {% block content %}
-            <div class="banner">
-                <h2>О кооперативе «Бест Вей»</h2>
-                <p>
-                «Бест Вей» – это потребительский кооператив, который помогает людям приобретать недвижимость на выгодных условиях без переплат и скрытых комиссий.
-                Наша миссия – сделать покупку жилья доступной, прозрачной и удобной. Мы объединяем ресурсы участников кооператива, чтобы каждый мог стать владельцем квартиры без долгих лет ипотеки и переплат банкам.</p>
-                <div style="text-align: center;">
-                    <a href="http://t.me/bw_bestwaycoop" style="text-decoration: none; color: rgba(17, 112, 195, 1); display: inline-block; transition: color 0.3s ease;">
-                        <svg width="20" height="20" viewBox="0 0 24 24" style="vertical-align: middle; margin-right: 5px;">
-                            <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.03-.1.06-.2-.06-.3s-.35-.04-.5-.03c-.21.03-3.57 2.26-5.04 3.18-.48.3-.92.45-1.32.44-.43-.01-1.27-.24-1.89-.44-.75-.25-1.35-.38-1.3-.8.03-.27.4-.55 1.1-.85 4.43-1.94 7.37-3.22 11.2-4.96.53-.2 1.01-.3 1.45-.3.31.01.9.17.9.66.01.33-.33.76-.5 1.02z"/>
-                        </svg>
-                        <span>Наш Telegram</span>
-                    </a>
+    <div class="banner">
+        <h2>О кооперативе «Бест Вей»</h2>
+        <p>
+        «Бест Вей» – это потребительский кооператив, который помогает людям приобретать недвижимость на выгодных условиях без переплат и скрытых комиссий.
+        Наша миссия – сделать покупку жилья доступной, прозрачной и удобной. Мы объединяем ресурсы участников кооператива, чтобы каждый мог стать владельцем квартиры без долгих лет ипотеки и переплат банкам.</p>
+        <div style="text-align: center;">
+            <a href="http://t.me/bw_bestwaycoop" style="text-decoration: none; color: rgba(17, 112, 195, 1); display: inline-block; transition: color 0.3s ease;">
+                <svg width="20" height="20" viewBox="0 0 24 24" style="vertical-align: middle; margin-right: 5px;">
+                    <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.03-.1.06-.2-.06-.3s-.35-.04-.5-.03c-.21.03-3.57 2.26-5.04 3.18-.48.3-.92.45-1.32.44-.43-.01-1.27-.24-1.89-.44-.75-.25-1.35-.38-1.3-.8.03-.27.4-.55 1.1-.85 4.43-1.94 7.37-3.22 11.2-4.96.53-.2 1.01-.3 1.45-.3.31.01.9.17.9.66.01.33-.33.76-.5 1.02z"/>
+                </svg>
+                <span>Наш Telegram</span>
+            </a>
+        </div>
+    </div>
+
+        {% if important_news %}
+    <div id="important-news-banner">
+        <div class="banner-content">
+            <button class="close-btn">×</button>
+            <h3>📢 Важная новость</h3>
+            
+            <div class="news-scroll-container">
+                {% for news in important_news %}
+                <div class="news-item">
+                    <div class="news-date">{{ news.created_at|date:"d.m.Y" }}</div>
+                    <div class="news-title">{{ news.title }}</div>
+                    <div class="news-text">{{ news.content|truncatewords:30 }}</div>
                 </div>
+                {% endfor %}
             </div>
+            
+            <div class="banner-footer">
+                <a href="{% url 'news:news_page' %}" class="details-btn">Все новости</a>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        #important-news-banner {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            max-width: 400px;
+            max-height: 70vh;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            z-index: 10000;
+            border: 2px solid #f3a33a;
+            display: none;
+        }
+
+        .banner-content {
+            padding: 15px;
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #f3a33a;
+            border: none;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            cursor: pointer;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 10001;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        h3 {
+            color: #e65100;
+            margin: 0 0 12px 0;
+            text-align: center;
+            font-size: 18px;
+            padding-right: 25px;
+        }
+
+        .news-scroll-container {
+            max-height: 40vh;
+            overflow-y: auto;
+            margin-bottom: 12px;
+        }
+
+        .news-item {
+            background: #fff8e1;
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 6px;
+            border-left: 3px solid #f3a33a;
+        }
+
+        .news-date {
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 2px;
+        }
+
+        .news-title {
+            font-weight: bold;
+            margin: 4px 0;
+            color: #333;
+            font-size: 14px;
+            line-height: 1.2;
+        }
+
+        .news-text {
+            font-size: 12px;
+            color: #555;
+            line-height: 1.3;
+        }
+
+        .banner-footer {
+            text-align: center;
+            padding-top: 8px;
+            border-top: 1px solid #ffe0b2;
+        }
+
+        .details-btn {
+            display: inline-block;
+            padding: 8px 16px;
+            background: #f3a33a;
+            color: white;
+            text-decoration: none;
+            border-radius: 15px;
+            font-weight: 600;
+            font-size: 12px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .banner-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.4);
+            z-index: 9999;
+            display: none;
+        }
+
+        /* Убираем полный экран на мобильных */
+        @media (max-width: 480px) {
+            #important-news-banner {
+                width: 85%;
+                max-width: 85%;
+                max-height: 65vh;
+                border-radius: 8px;
+                border: 2px solid #f3a33a;
+            }
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const banner = document.getElementById('important-news-banner');
+            const overlay = document.createElement('div');
+            overlay.className = 'banner-overlay';
+            document.body.appendChild(overlay);
+
+            setTimeout(function() {
+                banner.style.display = 'block';
+                overlay.style.display = 'block';
+                document.body.style.overflow = 'hidden';
+            }, 500);
+
+            function closeBanner() {
+                banner.style.display = 'none';
+                overlay.style.display = 'none';
+                document.body.style.overflow = '';
+            }
+
+            document.querySelector('.close-btn').addEventListener('click', closeBanner);
+
+            overlay.addEventListener('click', closeBanner);
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeBanner();
+                }
+            });
+
+            banner.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        });
+    </script>
+        {% endif %}
 {% endblock content %}

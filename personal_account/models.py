@@ -260,6 +260,8 @@ class Profile_addres(models.Model):
 
     reg_street = models.CharField(max_length=50,
                                   verbose_name='Улица',
+                                  blank=True,
+                                  null=True,
                                   default='',
                                   validators=[validate_no_english]
                                   )
@@ -316,6 +318,8 @@ class Profile_addres(models.Model):
 
     act_street = models.CharField(max_length=50,
                                   verbose_name='Улица',
+                                  blank=True,
+                                  null=True,
                                   default='',
                                   validators=[validate_no_english]
                                   )

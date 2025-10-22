@@ -9,6 +9,7 @@ from .models import News
 from .forms import NewsForm
 from .utils import user_is_staff
 
+
 class AdminRequiredMixin(UserPassesTestMixin):
     def test_func(self):
         return user_is_staff(self.request.user)
@@ -16,15 +17,21 @@ class AdminRequiredMixin(UserPassesTestMixin):
     def handle_no_permission(self):
         raise PermissionDenied
 
+
 class NewsListView(ListView):
     model = News
     template_name = "news/news_page.html"
     paginate_by = 10
 
+    def get_queryset(self):
+        return News.objects.all().order_by('-is_important', '-created_at')
+
+
 class NewsDetailView(DetailView):
     model = News
     template_name = "news/news_detail.html"
     context_object_name = "detail"
+
 
 class NewsCreateView(LoginRequiredMixin, AdminRequiredMixin, CreateView):
     model = News
@@ -44,6 +51,7 @@ class NewsCreateView(LoginRequiredMixin, AdminRequiredMixin, CreateView):
             return JsonResponse({'success': False, 'errors': form.errors}, status=400)
         return super().form_invalid(form)
 
+
 class NewsUpdateView(LoginRequiredMixin, AdminRequiredMixin, UpdateView):
     model = News
     form_class = NewsForm
@@ -61,17 +69,16 @@ class NewsUpdateView(LoginRequiredMixin, AdminRequiredMixin, UpdateView):
             return JsonResponse({'success': False, 'errors': form.errors}, status=400)
         return super().form_invalid(form)
 
+
 class NewsDeleteView(LoginRequiredMixin, AdminRequiredMixin, DeleteView):
     model = News
-    template_name = "news/news_page.html"
+    template_name = "news/news_confirm_delete.html"
     success_url = reverse_lazy("news:news_page")
 
     def delete(self, request, *args, **kwargs):
-        # Получаем объект (но пока не вызываем супер)
         self.object = self.get_object()
         pk = self.object.pk
 
-        # Надежная проверка AJAX
         is_ajax = (
             request.headers.get('X-Requested-With') == 'XMLHttpRequest' or
             request.headers.get('x-requested-with') == 'XMLHttpRequest' or
@@ -79,8 +86,6 @@ class NewsDeleteView(LoginRequiredMixin, AdminRequiredMixin, DeleteView):
         )
 
         if is_ajax:
-            # Удаляем вручную и сразу возвращаем JSON
             self.object.delete()
             return JsonResponse({'success': True, 'id': pk})
-        # Для обычных запросов — оставить стандартное поведение (редирект)
         return super().delete(request, *args, **kwargs)

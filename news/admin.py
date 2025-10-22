@@ -8,7 +8,7 @@ admin.site.index_title = "Управление сайтом"
 @admin.register(News)
 class NewsAdmin(admin.ModelAdmin):
     # Поля, которые отображаются в списке
-    list_display = ['title', 'author', 'created_at', 'updated_at']
+    list_display = ['title', 'author', 'created_at', 'updated_at', 'is_important']
     
     # Поля для фильтрации справа
     list_filter = ['created_at', 'updated_at', 'author']
@@ -28,7 +28,7 @@ class NewsAdmin(admin.ModelAdmin):
             'fields': ('title', 'content')
         }),
         ('Дополнительная информация', {
-            'fields': ('author', 'created_at', 'updated_at'),
+            'fields': ('author', 'is_important', 'created_at', 'updated_at'),
             'classes': ('collapse',)  # Сворачиваемая секция
         }),
     )

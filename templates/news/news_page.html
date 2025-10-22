@@ -5,7 +5,11 @@
 
 <div class="news-container">
     {% for item in news_list %}
-        <article class="news-item" id="news-{{ item.pk }}">
+        <article class="news-item {% if item.is_important %}news-important{% endif %}" id="news-{{ item.pk }}">
+            {% if item.is_important %}
+            <div class="important-badge">Важная новость</div>
+            {% endif %}
+            
             <div class="news-header">
                 <h3 class="news-title">{{ item.title }}</h3>
                 <span class="news-date">{{ item.created_at|date:"d.m.Y" }}</span>
@@ -38,6 +42,7 @@
     {% endfor %}
 </div>
 
+
 <div class="page-actions">
     {% if user|is_staff_template %}
         <button id="btn-create" class="btn btn-primary">Создать новость</button>
@@ -56,7 +61,6 @@
     </div>
 </div>
 
-<!-- CREATE / EDIT MODAL -->
 <div id="modal-form-backdrop" class="modal-backdrop" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true">
         <h3 id="modal-form-title">Создать новость</h3>
@@ -73,6 +77,13 @@
                 <textarea class="input" name="content" id="news-content" rows="8" required></textarea>
             </div>
 
+            <div class="form-group">
+                <div class="form-check">
+                    <input type="checkbox" name="is_important" id="news-important" class="form-check-input" {% if form.is_important.value %}checked{% endif %}>
+                    <label for="news-important" class="form-check-label">Отметить как важную новость</label>
+                </div>
+            </div>
+
             <div class="actions">
                 <button type="button" id="modal-cancel" class="btn btn-secondary">Отмена</button>
                 <button type="submit" id="modal-save" class="btn btn-primary">Сохранить</button>
@@ -81,13 +92,11 @@
     </div>
 </div>
 
-<!-- DELETE CONFIRM MODAL -->
 <div id="modal-delete-backdrop" class="modal-backdrop" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true">
         <h3>Подтверждение удаления</h3>
         <p id="delete-message">Вы уверены, что хотите удалить новость?</p>
 
-        <!-- Обратите внимание: action заполняется динамически в JS -->
         <form id="delete-form" method="post" action="">
             {% csrf_token %}
             <div class="actions">
@@ -190,6 +199,52 @@
         border-top: 1px solid #e9ecef;
         /* Добавляем для мобильных */
         flex-wrap: wrap;
+    }
+
+    .news-important {
+        border: 2px solid #f3a33a;
+        border-left: 6px solid #f3a33a;
+        order: -1; /* Для гарантии что будут сверху */
+    }
+
+    .important-badge {
+        background: linear-gradient(135deg, #f3a33a, #f3a33a);
+        color: white;
+        padding: 8px 16px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: inline-block;
+        border-radius: 4px 4px 0 0;
+        margin: -2px -2px 12px -2px;
+        box-shadow: 0 2px 4px rgba(255, 152, 0, 0.3);
+    }
+
+    /* Гарантируем что важные новости всегда сверху */
+    .news-container {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .news-important {
+        order: -1;
+    }
+
+    /* Увеличиваем заметность при наведении */
+    .news-important:hover {
+        border-color: #f3a33a;
+        box-shadow: 0 6px 20px rgba(255, 152, 0, 0.25);
+        transform: translateY(-3px);
+    }
+
+    /* Дополнительные акценты для важных новостей */
+    .news-important .news-title {
+        color: #f3a33a;
+    }
+
+    .news-important .news-header {
+        border-bottom-color: #ffe0b2;
     }
     
     .no-news {
