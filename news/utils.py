@@ -4,7 +4,7 @@ def user_is_staff(user):
     if getattr(user, "info", False):
         return True
     # если у вас профиль: user.profile.is_staff
-    profile = getattr(user, "profile_addres", None)
+    profile = getattr(user, "profile_address", None)
     if profile and getattr(profile, "info", False):
         return True
     return False

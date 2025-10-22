@@ -8,9 +8,9 @@ from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404, redirect, render
 from django.http import Http404
 from django.contrib.auth.mixins import LoginRequiredMixin
-from .forms import LoginForm, RegistrationForm, ProfileUpdateForm, ProfileAddresForm, ProfileInviteeForm, ProfileQueueForm
+from .forms import LoginForm, RegistrationForm, ProfileUpdateForm, ProfileAddressForm, ProfileInviteeForm, ProfileQueueForm
 from django.core.exceptions import ValidationError
-from .models import Profile, Profile_addres, Profile_invitee, Profile_queue
+from .models import Profile, Profile_address, Profile_invitee, Profile_queue
 from django.conf import settings
 from django.contrib.auth import login
 from django.contrib.auth.hashers import make_password
@@ -210,11 +210,11 @@ class PersonalInformationUpdateView(LoginRequiredMixin, UpdateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         try:
-            address = self.request.user.profile_addres
-        except Profile_addres.DoesNotExist:
-            address = Profile_addres(user=self.request.user)
+            address = self.request.user.profile_address
+        except Profile_address.DoesNotExist:
+            address = Profile_address(user=self.request.user)
         if 'address_form' not in context:
-            context['address_form'] = ProfileAddresForm(instance=address)
+            context['address_form'] = ProfileAddressForm(instance=address)
         context['dadata_token'] = settings.TOKEN
         return context
 
@@ -222,10 +222,10 @@ class PersonalInformationUpdateView(LoginRequiredMixin, UpdateView):
         self.object = self.get_object()
         form = self.get_form()
         try:
-            address_inst = request.user.profile_addres
-        except Profile_addres.DoesNotExist:
-            address_inst = Profile_addres(user=request.user)
-        address_form = ProfileAddresForm(request.POST, instance=address_inst)
+            address_inst = request.user.profile_address
+        except Profile_address.DoesNotExist:
+            address_inst = Profile_address(user=request.user)
+        address_form = ProfileAddressForm(request.POST, instance=address_inst)
 
         if form.is_valid() and address_form.is_valid():
             return self.forms_valid(form, address_form)
