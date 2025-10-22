@@ -424,8 +424,8 @@ class Profile_queue(models.Model):
     STATUS_CHOICES = [
         ('Обработка', 'Обработка'),
         ('Пайщик', 'Пайщик'),
-        ('Должник', 'Должник'),
-        ('В очереди', 'В очереди'),
+        ('Участник', 'Участник'),
+        ('Кандидат', 'Кандидат'),
     ]
 
     type_of_purchase = models.CharField(max_length=10,
