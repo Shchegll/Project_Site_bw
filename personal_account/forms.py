@@ -313,7 +313,7 @@ class ProfileUpdateForm(forms.ModelForm):
         return profile
 
 
-class ProfileAddresForm(forms.ModelForm):
+class ProfileAddressForm(forms.ModelForm):
     reg_country = forms.CharField(
         required=True,
         max_length=50,
@@ -433,7 +433,7 @@ class ProfileAddresForm(forms.ModelForm):
             )
 
     class Meta:
-        model = md.Profile_addres
+        model = md.Profile_address
         fields = ['reg_country',
                   'reg_region',
                   'reg_city',

@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
-from .models import Profile, Profile_addres, Profile_invitee, Profile_partner, Profile_queue
+from .models import Profile, Profile_address, Profile_invitee, Profile_partner, Profile_queue
 
 admin.site.site_header = "Панель администратора"
 admin.site.index_title = "Управление сайтом"
@@ -91,7 +91,7 @@ class ProfileAdmin(admin.ModelAdmin):
             ]
         return super().formfield_for_choice_field(db_field, request, **kwargs)
 
-@admin.register(Profile_addres)
+@admin.register(Profile_address)
 class ProfileAddressAdmin(admin.ModelAdmin):
     list_display = ['user',
                     'reg_country',

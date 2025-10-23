@@ -227,11 +227,11 @@ class Profile(models.Model):
         verbose_name_plural = "Личные данные"
 
 
-class Profile_addres(models.Model):
+class Profile_address(models.Model):
     user = models.OneToOneField(User,
                                 on_delete=models.CASCADE,
                                 primary_key=True,
-                                related_name='profile_addres'
+                                related_name='profile_address'
                                 )
 
     reg_country = models.CharField(max_length=50,
