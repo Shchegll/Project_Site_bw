@@ -210,3 +210,44 @@ class ProfileQueueAdmin(admin.ModelAdmin):
             return mark_safe(f'<img src="{obj.membership_fee_photo.url}" style="max-height: 100px;" />')
         return "Нет изображения"
     membership_fee_photo_preview.short_description = 'Предпросмотр'
+
+
+@admin.register(Profile_partner)
+class ProfilePartnerAdmin(admin.ModelAdmin):
+    list_display = [
+        'user',
+        'referral_code',
+        'referred',
+        'referral_link',
+    ]
+
+    readonly_fields = [
+        'referral_code',
+        'referral_link',
+    ]
+
+    fieldsets = (
+        ('Основная информация', {
+            'fields': (
+                'referral_code',
+                'referral_link',
+            )
+        }),
+        ('Реферальная система', {
+            'fields': (
+                'referred',
+            )
+        }),
+    )
+
+    def referral_link_display(self, obj):
+        if obj.referral_link:
+            return mark_safe(f'<a href="{obj.referral_link}" target="_blank">{obj.referral_link}</a>')
+        return "Нет ссылки"
+    referral_link_display.short_description = 'Реферальная ссылка'
+
+    def referred_by(self, obj):
+        if obj.referred:
+            return obj.referred.email
+        return "Не приглашен"
+    referred_by.short_description = 'Приглашен пользователем'
