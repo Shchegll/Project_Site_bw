@@ -19,3 +19,4 @@ class NewsForm(forms.ModelForm):
     def clean_content(self):
         content = self.cleaned_data["content"]
         return strip_tags(content)
+

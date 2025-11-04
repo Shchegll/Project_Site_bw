@@ -6,6 +6,8 @@ from django.core.validators import RegexValidator
 from simple_history.models import HistoricalRecords
 from django.contrib.auth.models import User
 from uuid import uuid4
+import random
+import string
 import os
 import re
 
@@ -359,14 +361,42 @@ class Profile_partner(models.Model):
                                 related_name='profile_partner'
                                 )
 
-    account_link = models.CharField(
-        verbose_name="Ссылка на аккаунт",
-        max_length=500,
+    referral_code = models.CharField(
+        max_length=10,
+        unique=True,
         blank=True,
         null=True,
-        default='',
-        help_text="Ссылка на профиль в социальной сети или другом сервисе"
+        verbose_name='Реферальный код'
     )
+    referred = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='referrals',
+        verbose_name='Приглашен пользователем'
+    )
+    referral_link = models.CharField(
+        max_length=24,
+        blank=True,
+        null=True,
+        verbose_name='Реферальная ссылка'
+    )
+
+    def save(self, *args, **kwargs):
+        if not self.referral_code:
+            self.referral_code = self.generate_referral_code()
+        if not self.referral_link:
+            self.referral_link = f"/register?ref={self.referral_code}"
+        super().save(*args, **kwargs)
+
+    def generate_referral_code(self):
+        code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
+
+        while Profile_partner.objects.filter(referral_code=code):
+            code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
+
+        return code
 
     history = HistoricalRecords()
 
