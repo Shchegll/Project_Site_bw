@@ -10,7 +10,7 @@ from django.http import Http404
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .forms import LoginForm, RegistrationForm, ProfileUpdateForm, ProfileAddressForm, ProfileInviteeForm, ProfileQueueForm
 from django.core.exceptions import ValidationError
-from .models import Profile, Profile_address, Profile_invitee, Profile_queue
+from .models import Profile, Profile_address, Profile_invitee, Profile_queue, Profile_partner
 from django.conf import settings
 from django.contrib.auth import login
 from django.contrib.auth.hashers import make_password
@@ -56,7 +56,24 @@ class RegistrationStartView(View):
 
     def get(self, request):
         form = self.form_class()
-        return render(request, self.template_name, {'form': form, 'title': 'Регистрация на сайте'})
+
+        referral_code = request.GET.get('ref', '')
+        referrer = None
+
+        if referral_code:
+            try:
+                referrer_profile = Profile_partner.objects.get(referral_code=referral_code)
+                referrer = referrer_profile.user
+                request.session['referrer_id'] = referrer.id
+                messages.info(request, f"Вы регистрируетесь по приглашению пользователя '{referrer.last_name} {referrer.first_name}'")
+            except Profile_partner.DoesNotExist:
+                messages.warning(request, "Неверная реферальная ссылка")
+
+        return render(request, self.template_name, {
+            'form': form,
+            'title': 'Регистрация на сайте',
+            'referrer': referrer
+        })
 
     def post(self, request):
         form = self.form_class(request.POST)
@@ -86,6 +103,10 @@ class RegistrationStartView(View):
             'password_hash': hashed_password,
             'created_at': timezone.now().isoformat(),
         }
+
+        referrer_id = request.session.get('referrer_id')
+        if referrer_id:
+            data['referrer_id'] = referrer_id
 
         reg_utils.cache_registration_data(code, email, data)
         reg_utils.send_confirmation_email(email, code)
@@ -132,6 +153,22 @@ class VerifyRegistrationView(View):
                 }
 
                 Profile.objects.update_or_create(user=user, defaults=profile_defaults)
+
+                partner_profile, created = Profile_partner.objects.get_or_create(user=user)
+
+                referrer_id = data.get('referrer_id')
+                if referrer_id:
+                    try:
+                        referrer = User.objects.get(id=referrer_id)
+                        partner_profile.referred_id = referrer.id
+                        partner_profile.save()
+
+                        messages.success(request, f"Вы успешно зарегистрированы по приглашению пользователя '{referrer.last_name} {referrer.first_name}'")
+
+                        if 'referrer_id' in request.session:
+                            del request.session['referrer_id']
+                    except User.DoesNotExist:
+                        pass
 
         except ValidationError as e:
             reg_utils.delete_registration_data(input_code, email)
@@ -390,3 +427,31 @@ class SourceInformationnUpdateView(LoginRequiredMixin, UpdateView):
             profile.save()
             messages.success(self.request, "Информация о пригласившем успешно обновлена.")
             return redirect(self.get_success_url_else())
+
+
+class ReferralView(View):
+    template_name = 'personal_account/referral.html'
+
+    def get(self, request):
+        if not request.user.is_authenticated:
+            return redirect('personal_account:login')
+
+        user = request.user
+        try:
+            partner_profile = Profile_partner.objects.get(user=user)
+        except Profile_partner.DoesNotExist:
+            partner_profile = Profile_partner.objects.create(user=user)
+
+        # Получаем рефералов пользователя
+        referrals = Profile_partner.objects.filter(referred=user).select_related('user')
+
+        # Формируем полную реферальную ссылку
+        full_referral_link = f"{request.scheme}://{request.get_host()}/personal_account/signup?ref={partner_profile.referral_code}"
+
+        context = {
+            'referral_link': full_referral_link,
+            'referral_code': partner_profile.referral_code,
+            'referrals': referrals,
+            'title': 'Реферальная программа'
+        }
+        return render(request, self.template_name, context)

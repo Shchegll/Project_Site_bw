@@ -1,0 +1,297 @@
+{% extends "base_personal_account.html" %}
+{% block content %}
+    <div class="content">
+        <div class="banner">
+            <h2>Партнёрская программа</h2>
+            
+            {% if user.profile_partner.referred %}
+            <div class="partners-section">
+                <h3>Ваш Консультант</h3>
+                <div class="partners-list">
+                    <div class="partner-item" 
+                         data-name="{{ user.profile_partner.referred.first_name }} {{ user.profile_partner.referred.last_name }}"
+                         data-email="{{ user.profile_partner.referred.email }}"
+                         data-phone="{{ user.profile_partner.referred.profile.phone|default:'Не указан' }}"
+                         data-date="{{ user.profile_partner.referred.date_joined|date:'d.m.Y' }}">
+                        {{ user.profile_partner.referred.first_name }} {{ user.profile_partner.referred.last_name }}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="referral-section">
+                <p>Ваша партнёрская ссылка для привлечения новых участников:</p>
+                <div class="link-container">
+                    <div class="input-group">
+                        <input type="text" 
+                               class="form-control" 
+                               value="{{ referral_link }}" 
+                               id="referralLink"
+                               readonly>
+                        <button class="btn-copy" type="button" id="copyButton">
+                            Копировать
+                        </button>
+                    </div>
+                </div>
+                <p class="referral-code">
+                    Ваш партнёрский код: <strong>{{ referral_code }}</strong>
+                </p>
+            </div>
+
+            <div class="partners-section">
+                <h3>Ваши партнёры</h3>
+                {% if referrals %}
+                <div class="partners-list">
+                    {% for referral in referrals %}
+                    <div class="partner-item"
+                         data-name="{{ referral.user.first_name }} {{ referral.user.last_name }}"
+                         data-email="{{ referral.user.email }}"
+                         data-phone="{{ referral.user.profile.phone|default:'Не указан' }}"
+                         data-date="{{ referral.user.date_joined|date:'d.m.Y' }}">
+                        {{ referral.user.first_name }} {{ referral.user.last_name }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="no-partners">
+                    На данный момент у вас нет партнёров.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div id="partnerModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3>Информация о партнёре</h3>
+            <div class="partner-details">
+                <div class="detail-row">
+                    <strong>Имя:</strong>
+                    <span id="modal-name"></span>
+                </div>
+                <div class="detail-row">
+                    <strong>Email:</strong>
+                    <span id="modal-email"></span>
+                </div>
+                <div class="detail-row">
+                    <strong>Телефон:</strong>
+                    <span id="modal-phone"></span>
+                </div>
+                <div class="detail-row">
+                    <strong>Дата регистрации:</strong>
+                    <span id="modal-date"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<style>
+    .banner {
+        padding: 20px;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .referral-section {
+        margin: 25px 0;
+    }
+
+    .link-container {
+        margin: 15px 0;
+        overflow-wrap: break-word;
+    }
+
+    .input-group {
+        display: flex;
+        gap: 10px;
+        align-items: stretch;
+    }
+
+    .form-control {
+        flex-grow: 1;
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+        min-width: 0;
+    }
+
+    .btn-copy {
+        padding: 8px 16px;
+        background: #f8f9fa;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    .btn-copy:hover {
+        background: #e9ecef;
+    }
+
+    .referral-code {
+        color: #666;
+        font-size: 14px;
+        margin-top: 10px;
+    }
+
+    .partners-section {
+        margin-top: 30px;
+        padding: 20px;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .partners-section h3 {
+        margin-top: 0;
+        color: #333;
+        font-size: 1.3em;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .partners-list {
+        margin-top: 15px;
+    }
+
+    .partner-item {
+        padding: 12px 15px;
+        border-bottom: 1px solid #eee;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+        border-radius: 4px;
+        margin-bottom: 5px;
+    }
+
+    .partner-item:hover {
+        background-color: #f8f9fa;
+    }
+
+    .partner-item:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+    }
+
+    .no-partners {
+        padding: 15px;
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 4px;
+        color: #856404;
+        margin-top: 15px;
+        text-align: center;
+    }
+
+    /* Стили для модального окна */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5);
+    }
+
+    .modal-content {
+        background-color: #fff;
+        margin: 15% auto;
+        padding: 25px;
+        border-radius: 8px;
+        width: 90%;
+        max-width: 500px;
+        position: relative;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        line-height: 1;
+        cursor: pointer;
+        position: absolute;
+        right: 15px;
+        top: 15px;
+    }
+
+    .close:hover {
+        color: #000;
+    }
+
+    .partner-details {
+        margin-top: 20px;
+    }
+
+    .detail-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px solid #eee;
+    }
+
+    .detail-row:last-child {
+        border-bottom: none;
+    }
+
+    .detail-row strong {
+        color: #333;
+        min-width: 140px;
+    }
+
+    /* Мобильная версия */
+    @media (max-width: 768px) {
+        .banner {
+            padding: 15px;
+        }
+        
+        .input-group {
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .form-control {
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .btn-copy {
+            width: 100%;
+            padding: 10px 16px;
+        }
+        
+        .referral-section,
+        .partners-section {
+            margin: 20px 0;
+            padding: 15px;
+        }
+        
+        .partner-item {
+            padding: 15px;
+        }
+        
+        .modal-content {
+            margin: 10% auto;
+            padding: 20px;
+            width: 95%;
+        }
+        
+        .detail-row {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 5px;
+        }
+        
+        .detail-row strong {
+            min-width: auto;
+        }
+    }
+</style>
+{% endblock %}

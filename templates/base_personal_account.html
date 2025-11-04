@@ -56,7 +56,7 @@
                             <button class="submenu-item" data-url="{% url 'personal_account:requisites' %}">Реквизиты</button>
                             <button class="submenu-item" data-url="{% url 'donation' %}">Добровольное пожертвование</button>
                         </div>
-                        <button class="menu-item">Партнёрство</button>
+                        <button class="menu-item" data-url="{% url 'personal_account:referral' %}">Партнёрство</button>
                         <button class="menu-item">Очередь</button>
                         <button class="menu-item">Долги</button>
                         <button class="menu-item">Уведомления</button>
@@ -313,4 +313,64 @@
     }
 
     document.addEventListener('DOMContentLoaded', formatAllPrices);
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('copyButton').addEventListener('click', function() {
+            const copyText = document.getElementById("referralLink");
+            copyText.select();
+            copyText.setSelectionRange(0, 99999);
+            
+            navigator.clipboard.writeText(copyText.value).then(() => {
+                const button = this;
+                const originalText = button.textContent;
+                button.textContent = 'Скопировано!';
+                button.style.background = '#d4edda';
+                button.style.borderColor = '#c3e6cb';
+                button.style.color = '#155724';
+                
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.style.background = '';
+                    button.style.borderColor = '';
+                    button.style.color = '';
+                }, 2000);
+            });
+        });
+
+        document.querySelectorAll('.partner-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const name = this.getAttribute('data-name');
+                const email = this.getAttribute('data-email');
+                const phone = this.getAttribute('data-phone');
+                const date = this.getAttribute('data-date');
+                
+                showPartnerDetails(name, email, phone, date);
+            });
+        });
+
+        const modal = document.getElementById('partnerModal');
+        const closeBtn = document.querySelector('.close');
+        
+        closeBtn.addEventListener('click', function() {
+            modal.style.display = 'none';
+        });
+        
+        window.addEventListener('click', function(event) {
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        });
+    });
+
+    function showPartnerDetails(name, email, phone, date) {
+        document.getElementById('modal-name').textContent = name;
+        document.getElementById('modal-email').textContent = email;
+        document.getElementById('modal-phone').textContent = phone;
+        document.getElementById('modal-date').textContent = date;
+        
+        const modal = document.getElementById('partnerModal');
+        modal.style.display = 'block';
+    }
 </script>

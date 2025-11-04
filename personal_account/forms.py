@@ -479,17 +479,55 @@ class ProfileInviteeForm(forms.ModelForm):
                                     validators=[md.validate_phone]
                                     )
 
+    parther_code = forms.CharField(max_length=10,
+                                   label='Код консультанта',
+                                   required=False,
+                                   widget=forms.TextInput(attrs={'class': 'form-control'}),
+                                   )
+
     class Meta:
         model = md.Profile_invitee
         fields = ['parther_name',
-                  'parther_phone'
+                  'parther_phone',
+                  'parther_code'
                   ]
 
+    def clean_parther_code(self):
+        parther_code = self.cleaned_data.get('parther_code')
+
+        if parther_code:
+            try:
+                partner_profile = md.Profile_partner.objects.get(referral_code=parther_code)
+
+                if hasattr(self, 'instance') and self.instance.user_id == partner_profile.user_id:
+                    raise forms.ValidationError("Вы не можете указать себя в качестве консультанта")
+
+                self.referred_user_id = partner_profile.user_id
+            except md.Profile_partner.DoesNotExist:
+                raise forms.ValidationError("Реферальный код не найден")
+
+        return parther_code
+
     def save(self, commit=True):
-        addr = super().save(commit=False)
+        profile_invitee = super().save(commit=False)
+
+        if hasattr(self, 'referred_user_id') and profile_invitee.user_id == self.referred_user_id:
+            raise ValueError("Пользователь не может быть своим собственным консультантом")
+
         if commit:
-            addr.save()
-        return addr
+            profile_invitee.save()
+
+        if hasattr(self, 'referred_user_id'):
+            if profile_invitee.user_id != self.referred_user_id:
+                profile_partner, created = md.Profile_partner.objects.get_or_create(
+                    user=profile_invitee.user
+                )
+                profile_partner.referred_id = self.referred_user_id
+                profile_partner.save()
+            else:
+                print("Предотвращена попытка самоприглашения")
+
+        return profile_invitee
 
 
 class ProfileQueueForm(forms.ModelForm):
