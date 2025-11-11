@@ -41,7 +41,6 @@ def send_confirmation_email(to_email, code):
     from_email = settings.DEFAULT_FROM_EMAIL
     send_mail(subject, message, from_email, [to_email], fail_silently=False)
 
-# Простая защита от частых отправок по email
 def can_send_code(email, limit=5, period_seconds=3600):
     key = f"reg_rate:{email}"
     count = cache.get(key) or 0

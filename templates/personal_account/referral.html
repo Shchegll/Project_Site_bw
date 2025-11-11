@@ -5,14 +5,15 @@
             <h2>Партнёрская программа</h2>
             
             {% if user.profile_partner.referred %}
-            <div class="partners-section">
+            <div class="consultant-section">
                 <h3>Ваш Консультант</h3>
                 <div class="partners-list">
-                    <div class="partner-item" 
+                    <div class="partner-item consultant-item" 
                          data-name="{{ user.profile_partner.referred.first_name }} {{ user.profile_partner.referred.last_name }}"
                          data-email="{{ user.profile_partner.referred.email }}"
                          data-phone="{{ user.profile_partner.referred.profile.phone|default:'Не указан' }}"
-                         data-date="{{ user.profile_partner.referred.date_joined|date:'d.m.Y' }}">
+                         data-date="{{ user.profile_partner.referred.date_joined|date:'d.m.Y' }}"
+                         data-status="consultant">
                         {{ user.profile_partner.referred.first_name }} {{ user.profile_partner.referred.last_name }}
                     </div>
                 </div>
@@ -39,16 +40,51 @@
             </div>
 
             <div class="partners-section">
-                <h3>Ваши партнёры</h3>
+                <div class="filters-section">
+                    <h3>Ваши партнёры</h3>
+                    <div class="filters">
+                        <div class="filter-group">
+                            <label for="statusFilter">Фильтр по статусу:</label>
+                            <select id="statusFilter" class="filter-select">
+                                <option value="all">Все статусы</option>
+                                <option value="Консультант">Консультант</option>
+                                <option value="Пайщик">Пайщик</option>
+                                <option value="Участник">Участник</option>
+                                <option value="Кандидат">Кандидат</option>
+                                <option value="Обработка">Обработка</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="dateFilter">Фильтр по дате:</label>
+                            <select id="dateFilter" class="filter-select">
+                                <option value="all">Все даты</option>
+                                <option value="today">Сегодня</option>
+                                <option value="week">За неделю</option>
+                                <option value="month">За месяц</option>
+                                <option value="year">За год</option>
+                            </select>
+                        </div>
+                        <button id="resetFilters" class="btn-reset">Сбросить фильтры</button>
+                    </div>
+                </div>
+                
                 {% if referrals %}
-                <div class="partners-list">
+                <div class="partners-list" id="referralsList">
                     {% for referral in referrals %}
-                    <div class="partner-item"
+                    <div class="partner-item referral-item"
                          data-name="{{ referral.user.first_name }} {{ referral.user.last_name }}"
                          data-email="{{ referral.user.email }}"
                          data-phone="{{ referral.user.profile.phone|default:'Не указан' }}"
-                         data-date="{{ referral.user.date_joined|date:'d.m.Y' }}">
-                        {{ referral.user.first_name }} {{ referral.user.last_name }}
+                         data-date="{{ referral.user.date_joined|date:'d.m.Y' }}"
+                         data-timestamp="{{ referral.user.date_joined|date:'U' }}"
+                         data-status="{{ referral.user.profile_queue.status }}">
+                        <div class="partner-info">
+                            {{ referral.user.first_name }} {{ referral.user.last_name }}
+                        </div>
+                        <div class="partner-meta">
+                            <span class="partner-status">{{ referral.user.profile_queue.status }}</span>
+                            <span class="partner-date">{{ referral.user.date_joined|date:'d.m.Y' }}</span>
+                        </div>
                     </div>
                     {% endfor %}
                 </div>
@@ -138,6 +174,20 @@
         margin-top: 10px;
     }
 
+    /* Стили для секции консультанта - убрана плашка и оконтовка */
+    .consultant-section {
+        margin-top: 30px;
+    }
+
+    .consultant-section h3 {
+        margin-top: 0;
+        color: #333;
+        font-size: 1.3em;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #eee;
+    }
+
+    /* Стили для основной секции партнеров */
     .partners-section {
         margin-top: 30px;
         padding: 20px;
@@ -154,6 +204,59 @@
         border-bottom: 1px solid #eee;
     }
 
+    /* Стили для фильтров */
+    .filters-section {
+        margin-bottom: 20px;
+    }
+
+    .filters {
+        display: flex;
+        gap: 15px;
+        align-items: end;
+        flex-wrap: wrap;
+        margin-top: 15px;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 6px;
+    }
+
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .filter-group label {
+        font-size: 14px;
+        font-weight: 500;
+        color: #333;
+    }
+
+    .filter-select {
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+        min-width: 150px;
+        background: white;
+    }
+
+    .btn-reset {
+        padding: 8px 16px;
+        background: #6c757d;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background-color 0.3s ease;
+        height: fit-content;
+    }
+
+    .btn-reset:hover {
+        background: #5a6268;
+    }
+
     .partners-list {
         margin-top: 15px;
     }
@@ -165,6 +268,9 @@
         transition: background-color 0.2s ease;
         border-radius: 4px;
         margin-bottom: 5px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }
 
     .partner-item:hover {
@@ -176,6 +282,31 @@
         margin-bottom: 0;
     }
 
+    .partner-info {
+        flex-grow: 1;
+    }
+
+    .partner-meta {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .partner-status {
+        padding: 4px 8px;
+        background: #e9ecef;
+        border-radius: 12px;
+        font-size: 12px;
+        color: #495057;
+        white-space: nowrap;
+    }
+
+    .partner-date {
+        font-size: 12px;
+        color: #6c757d;
+        white-space: nowrap;
+    }
+
     .no-partners {
         padding: 15px;
         background: #fff3cd;
@@ -184,6 +315,11 @@
         color: #856404;
         margin-top: 15px;
         text-align: center;
+    }
+
+    /* Стили для скрытых элементов */
+    .partner-item.hidden {
+        display: none;
     }
 
     /* Стили для модального окна */
@@ -268,13 +404,37 @@
         }
         
         .referral-section,
-        .partners-section {
+        .partners-section,
+        .consultant-section {
             margin: 20px 0;
+            padding: 0;
+        }
+        
+        .partners-section {
             padding: 15px;
+        }
+        
+        .filters {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+        }
+        
+        .filter-select {
+            min-width: auto;
+            width: 100%;
         }
         
         .partner-item {
             padding: 15px;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        
+        .partner-meta {
+            width: 100%;
+            justify-content: space-between;
         }
         
         .modal-content {

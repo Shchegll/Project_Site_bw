@@ -1,4 +1,5 @@
 {% load static %}
+{% load is_status %}
 {% load django_bootstrap5 %}
 <!DOCTYPE html>
 <html lang="ru">
@@ -40,25 +41,27 @@
     
     <main class="main">
         <div class="container">
-
         {% include 'messages.html' %}
-
             <div class="profile-container">
                 <div class="sidebar">
                     <div class="menu-section">
                         <h3>Меню</h3>
                         <button data-url="{% url 'personal_account:user_profile' username=user.username %}" class="menu-item active">Профиль</button>
-                        <button id="payment-schedule-btn" class="menu-item">Мои платежи</button>
-                        <div id="payment-schedule-submenu" class="submenu">
-                            <button class="submenu-item">График платежей</button>
-                            <button class="submenu-item">Исторя платежей</button>
-                            <button class="submenu-item">Сделать платёж</button>
-                            <button class="submenu-item" data-url="{% url 'personal_account:requisites' %}">Реквизиты</button>
-                            <button class="submenu-item" data-url="{% url 'donation' %}">Добровольное пожертвование</button>
-                        </div>
-                        <button class="menu-item" data-url="{% url 'personal_account:referral' %}">Партнёрство</button>
-                        <button class="menu-item">Очередь</button>
-                        <button class="menu-item">Долги</button>
+                        {% with status=user|is_status_template %}
+                            {% if status == "Кандидат" or status == "Участник" or status == "Пайщик" or status == "Консультант" %}
+                                <button id="payment-schedule-btn" class="menu-item">Мои платежи</button>
+                                <div id="payment-schedule-submenu" class="submenu">
+                                    <button class="submenu-item">График платежей</button>
+                                    <button class="submenu-item">Исторя платежей</button>
+                                    <button class="submenu-item">Сделать платёж</button>
+                                    <button class="submenu-item" data-url="{% url 'personal_account:requisites' %}">Реквизиты</button>
+                                    <button class="submenu-item" data-url="{% url 'donation' %}">Добровольное пожертвование</button>
+                                </div>
+                                <button class="menu-item" data-url="{% url 'personal_account:referral' %}">Партнёрство</button>
+                                <button class="menu-item">Очередь</button>
+                                <button class="menu-item">Долги</button>
+                            {% endif %}
+                        {% endwith %}
                         <button class="menu-item">Уведомления</button>
                         <button data-url="{% url 'personal_account:help' %}" class="menu-item">Помощь</button>
                     </div>
@@ -373,4 +376,125 @@
         const modal = document.getElementById('partnerModal');
         modal.style.display = 'block';
     }
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Функции для модального окна
+        const modal = document.getElementById('partnerModal');
+        const closeBtn = document.querySelector('.close');
+        const partnerItems = document.querySelectorAll('.partner-item');
+        
+        partnerItems.forEach(item => {
+            item.addEventListener('click', function() {
+                document.getElementById('modal-name').textContent = this.dataset.name;
+                document.getElementById('modal-email').textContent = this.dataset.email;
+                document.getElementById('modal-phone').textContent = this.dataset.phone;
+                document.getElementById('modal-date').textContent = this.dataset.date;
+                modal.style.display = 'block';
+            });
+        });
+        
+        closeBtn.addEventListener('click', function() {
+            modal.style.display = 'none';
+        });
+        
+        window.addEventListener('click', function(event) {
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+        
+        // Копирование ссылки
+        document.getElementById('copyButton').addEventListener('click', function() {
+            const referralLink = document.getElementById('referralLink');
+            referralLink.select();
+            document.execCommand('copy');
+            this.textContent = 'Скопировано!';
+            setTimeout(() => {
+                this.textContent = 'Копировать';
+            }, 2000);
+        });
+        
+        // Функции для фильтров
+        const statusFilter = document.getElementById('statusFilter');
+        const dateFilter = document.getElementById('dateFilter');
+        const resetButton = document.getElementById('resetFilters');
+        
+        // Выбираем только партнеров из списка "Ваши партнёры", исключая консультанта
+        const partnerItemsList = document.querySelectorAll('#referralsList .referral-item');
+        
+        function applyFilters() {
+            const selectedStatus = statusFilter.value;
+            const selectedDate = dateFilter.value;
+            const now = new Date();
+            
+            partnerItemsList.forEach(item => {
+                let showItem = true;
+                const itemStatus = item.dataset.status;
+                const itemTimestamp = parseInt(item.dataset.timestamp) * 1000;
+                const itemDate = new Date(itemTimestamp);
+                
+                // Фильтр по статусу
+                if (selectedStatus !== 'all' && itemStatus !== selectedStatus) {
+                    showItem = false;
+                }
+                
+                // Фильтр по дате
+                if (showItem && selectedDate !== 'all') {
+                    const startOfDay = new Date(now);
+                    startOfDay.setHours(0, 0, 0, 0);
+                    
+                    switch(selectedDate) {
+                        case 'today':
+                            if (itemDate < startOfDay) {
+                                showItem = false;
+                            }
+                            break;
+                        case 'week':
+                            const weekAgo = new Date(now);
+                            weekAgo.setDate(now.getDate() - 7);
+                            if (itemDate < weekAgo) {
+                                showItem = false;
+                            }
+                            break;
+                        case 'month':
+                            const monthAgo = new Date(now);
+                            monthAgo.setMonth(now.getMonth() - 1);
+                            if (itemDate < monthAgo) {
+                                showItem = false;
+                            }
+                            break;
+                        case 'year':
+                            const yearAgo = new Date(now);
+                            yearAgo.setFullYear(now.getFullYear() - 1);
+                            if (itemDate < yearAgo) {
+                                showItem = false;
+                            }
+                            break;
+                    }
+                }
+                
+                // Показываем/скрываем элемент
+                if (showItem) {
+                    item.classList.remove('hidden');
+                } else {
+                    item.classList.add('hidden');
+                }
+            });
+        }
+        
+        // События для фильтров
+        statusFilter.addEventListener('change', applyFilters);
+        dateFilter.addEventListener('change', applyFilters);
+        
+        resetButton.addEventListener('click', function() {
+            statusFilter.value = 'all';
+            dateFilter.value = 'all';
+            applyFilters();
+        });
+        
+        // Инициализация фильтров при загрузке
+        applyFilters();
+    });
 </script>
