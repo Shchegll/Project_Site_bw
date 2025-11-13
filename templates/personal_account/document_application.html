@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="banner">
+        <h2>Отправка заявления</h2>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-section">
+                <div class="form-row">
+                    <div class="form-group">
+                        {{ form.consultant_contract_photo.label_tag }}
+                        {{ form.consultant_contract_photo }}
+                    </div>
+                    <div class="form-group">
+                        {{ form.agree_to_consultant.label_tag }}
+                        {{ form.agree_to_consultant }}
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Сохранить</button>
+            {% if form.errors %}
+            <div class="banner error">
+                <ul>
+                {% for field in form %}
+                    {% for error in field.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+                {% for error in form.non_field_errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+
+    <style>
+        .form-section {
+            margin-bottom: 2rem;
+            padding: 1rem;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 0 -10px;
+        }
+        .form-group {
+            flex: 1 0 calc(50% - 20px);
+            margin: 0 10px 15px;
+        }
+
+        .form-group_wide {
+            flex: 1 0 calc(100% - 20px);
+            margin: 0 10px 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-control {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+    </style>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const el = document.querySelector('input[name="id_coor"]');
+            if (!el) return;
+            
+            el.value = el.value || 'COOP-';
+            
+            el.addEventListener('input', (e) => {
+                const nums = e.target.value.replace('COOP-', '').replace(/\D/g, '').slice(0,18);
+                e.target.value = `COOP-${nums.slice(0,8)}${nums.length>8?'-'+nums.slice(8,14):''}${nums.length>14?'-'+nums.slice(14,18):''}`;
+            });
+            
+            el.addEventListener('keydown', (e) => {
+                const pos = e.target.selectionStart;
+                const value = e.target.value;
+                
+                if (e.key === 'Backspace') {
+                    if (value[pos - 1] === '-' && pos > 0) {
+                        e.preventDefault();
+                        const newValue = value.slice(0, pos - 2) + value.slice(pos - 1);
+                        e.target.value = newValue;
+                        e.target.setSelectionRange(pos - 2, pos - 2);
+                    }
+                }
+                
+                if (e.key === 'Delete') {
+                    if (value[pos] === '-' && pos < value.length) {
+                        e.preventDefault();
+                        const newValue = value.slice(0, pos + 1) + value.slice(pos + 2);
+                        e.target.value = newValue;
+                        e.target.setSelectionRange(pos, pos);
+                    }
+                }
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const sourceInput = document.querySelector('input[name="price"]');
+            const resultInput = document.querySelector('input[name="price_in_queue"]');
+            
+            if (!sourceInput || !resultInput) return;
+            
+            sourceInput.addEventListener('input', (e) => {
+                const value = parseFloat(e.target.value.replace(/[^\d.,]/g, '').replace(',', '.')) || 0;
+                const thirtyFivePercent = value * 0.35;
+                
+                resultInput.value = thirtyFivePercent.toFixed(2);
+            });
+        });
+        document.addEventListener('DOMContentLoaded', () => {
+            const sourceInput = document.querySelector('input[name="price"]');
+            const resultInput = document.querySelector('input[name="price_in_queue"]');
+            
+            if (!sourceInput || !resultInput) return;
+            
+            // Ограничение ввода только цифрами и запятой/точкой
+            sourceInput.addEventListener('input', (e) => {
+                // Удаляем все символы кроме цифр, точки и запятой
+                let value = e.target.value.replace(/[^\d.,]/g, '');
+                
+                // Заменяем запятую на точку для корректного вычисления
+                value = value.replace(',', '.');
+                
+                // Удаляем лишние точки/запятые (оставляем только первую)
+                const parts = value.split('.');
+                if (parts.length > 2) {
+                    value = parts[0] + '.' + parts.slice(1).join('');
+                }
+                
+                e.target.value = value;
+                
+                // Вычисляем 35%
+                const numericValue = parseFloat(value) || 0;
+                const thirtyFivePercent = numericValue * 0.35;
+                
+                resultInput.value = thirtyFivePercent.toFixed(2);
+            });
+            
+            // Дополнительная проверка при вставке (paste)
+            sourceInput.addEventListener('paste', (e) => {
+                e.preventDefault();
+                const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+                const cleanedText = pastedText.replace(/[^\d.,]/g, '');
+                document.execCommand('insertText', false, cleanedText);
+            });
+            
+            // Проверка при вводе с клавиатуры (keydown)
+            sourceInput.addEventListener('keydown', (e) => {
+                // Разрешаем: цифры, Backspace, Delete, Tab, Escape, Enter
+                if (
+                    (e.key >= '0' && e.key <= '9') ||
+                    e.key === '.' ||
+                    e.key === ',' ||
+                    e.key === 'Backspace' ||
+                    e.key === 'Delete' ||
+                    e.key === 'Tab' ||
+                    e.key === 'Escape' ||
+                    e.key === 'Enter' ||
+                    // Разрешаем стрелки и специальные клавиши
+                    e.key.startsWith('Arrow') ||
+                    e.key === 'Home' ||
+                    e.key === 'End'
+                ) {
+                    return; // Разрешаем ввод
+                }
+                
+                // Блокируем все остальные клавиши
+                e.preventDefault();
+            });
+        });
+    </script>
+
+{% endblock content %}

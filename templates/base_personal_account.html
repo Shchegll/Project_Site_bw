@@ -48,20 +48,30 @@
                         <h3>Меню</h3>
                         <button data-url="{% url 'personal_account:user_profile' username=user.username %}" class="menu-item active">Профиль</button>
                         {% with status=user|is_status_template %}
-                            {% if status == "Кандидат" or status == "Участник" or status == "Пайщик" or status == "Консультант" %}
-                                <button id="payment-schedule-btn" class="menu-item">Мои платежи</button>
-                                <div id="payment-schedule-submenu" class="submenu">
-                                    <button class="submenu-item">График платежей</button>
-                                    <button class="submenu-item">Исторя платежей</button>
-                                    <button class="submenu-item">Сделать платёж</button>
-                                    <button class="submenu-item" data-url="{% url 'personal_account:requisites' %}">Реквизиты</button>
-                                    <button class="submenu-item" data-url="{% url 'donation' %}">Добровольное пожертвование</button>
+                            {% if status == "Кандидат" or status == "Член потребительского кооператива" or status == "Пайщик" or status == "Консультант" %}
+                                {% if status == "Член потребительского кооператива" or status == "Пайщик" or status == "Консультант" %}
+                                    <button id="payment-schedule-btn" class="menu-item">Мои платежи</button>
+                                    <div id="payment-schedule-submenu" class="submenu">
+                                        <button class="submenu-item">График платежей</button>
+                                        <button class="submenu-item">Исторя платежей</button>
+                                        <button class="submenu-item">Сделать платёж</button>
+                                        <button class="submenu-item" data-url="{% url 'personal_account:requisites' %}">Реквизиты</button>
+                                    </div>
+                                    <button class="menu-item" data-url="{% url 'personal_account:referral' %}">Партнёрство</button>
+                                    <button class="menu-item">Очередь</button>
+                                    <button class="menu-item">Долги</button>
+                                {% endif %}
+                                <button id="supply-schedule-btn" class="menu-item">Подать заявление</button>
+                                <div id="supply-schedule-submenu" class="submenu">
+                                    <button class="submenu-item">Стать пайщиком</button>
+                                    {% if status == "False"%}
+                                        <button class="submenu-item" data-url="{% url 'personal_account:referral' %}">Стать консультантом</button>
+                                    {% endif %}
+                                    <button class="submenu-item">На участие в целевой программе</button>
                                 </div>
-                                <button class="menu-item" data-url="{% url 'personal_account:referral' %}">Партнёрство</button>
-                                <button class="menu-item">Очередь</button>
-                                <button class="menu-item">Долги</button>
                             {% endif %}
                         {% endwith %}
+                        <button data-url="{% url 'donation' %}" class="menu-item">Добровольное пожертвование</button>
                         <button class="menu-item">Уведомления</button>
                         <button data-url="{% url 'personal_account:help' %}" class="menu-item">Помощь</button>
                     </div>
@@ -260,14 +270,47 @@
     });
 
     document.addEventListener('DOMContentLoaded', function() {
-        const paymentScheduleBtn = document.getElementById('payment-schedule-btn');
-        const submenu = document.getElementById('payment-schedule-submenu');
+        // Функция для безопасной инициализации меню
+        function initMenu(buttonId, submenuId, otherSubmenuIds = []) {
+            const button = document.getElementById(buttonId);
+            const submenu = document.getElementById(submenuId);
+            
+            if (button && submenu) {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    // Закрываем другие submenu
+                    otherSubmenuIds.forEach(otherId => {
+                        const otherSubmenu = document.getElementById(otherId);
+                        if (otherSubmenu) otherSubmenu.style.display = 'none';
+                    });
+                    
+                    // Переключаем текущий
+                    const isVisible = submenu.style.display === 'block';
+                    submenu.style.display = isVisible ? 'none' : 'block';
+                });
+                
+                return true;
+            }
+            return false;
+        }
 
-        paymentScheduleBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            submenu.style.display = submenu.style.display === 'block' ? 'none' : 'block';
-        });
+        // Инициализируем меню платежей (если есть)
+        const paymentMenuExists = initMenu(
+            'payment-schedule-btn', 
+            'payment-schedule-submenu',
+            ['supply-schedule-submenu'] // Закрывать меню поставок при открытии
+        );
 
+        // Инициализируем меню поставок (если есть)
+        const supplyMenuExists = initMenu(
+            'supply-schedule-btn', 
+            'supply-schedule-submenu',
+            ['payment-schedule-submenu'] // Закрывать меню платежей при открытии
+        );
+
+        // Обработка кликов по пунктам подменю
         const submenuItems = document.querySelectorAll('.submenu-item');
         submenuItems.forEach(item => {
             item.addEventListener('click', function() {
@@ -278,12 +321,36 @@
             });
         });
 
+        // Закрытие всех submenu при клике вне области
         document.addEventListener('click', function(e) {
-            if (!paymentScheduleBtn.contains(e.target) && !submenu.contains(e.target)) {
-                submenu.style.display = 'none';
+            // Проверяем, был ли клик вне кнопок и подменю
+            const isPaymentClick = document.getElementById('payment-schedule-btn')?.contains(e.target) || 
+                                document.getElementById('payment-schedule-submenu')?.contains(e.target);
+            
+            const isSupplyClick = document.getElementById('supply-schedule-btn')?.contains(e.target) || 
+                                document.getElementById('supply-schedule-submenu')?.contains(e.target);
+            
+            if (!isPaymentClick && !isSupplyClick) {
+                // Закрываем все подменю
+                const paymentSubmenu = document.getElementById('payment-schedule-submenu');
+                const supplySubmenu = document.getElementById('supply-schedule-submenu');
+                
+                if (paymentSubmenu) paymentSubmenu.style.display = 'none';
+                if (supplySubmenu) supplySubmenu.style.display = 'none';
+            }
+        });
+
+        // Предотвращаем закрытие при клике внутри подменю
+        const submenus = document.querySelectorAll('.submenu');
+        submenus.forEach(submenu => {
+            if (submenu) {
+                submenu.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                });
             }
         });
     });
+
     function formatNumberWithSpaces(number) {
         return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
     }

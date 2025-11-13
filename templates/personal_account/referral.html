@@ -30,7 +30,10 @@
                                id="referralLink"
                                readonly>
                         <button class="btn-copy" type="button" id="copyButton">
-                            Копировать
+                            Копировать ссылку
+                        </button>
+                        <button class="btn-copy btn-invite" type="button" id="inviteButton" onclick="return false;">
+                            Пригласить участника
                         </button>
                     </div>
                 </div>
@@ -41,7 +44,12 @@
 
             <div class="partners-section">
                 <div class="filters-section">
-                    <h3>Ваши партнёры</h3>
+                    <div class="section-header">
+                        <h3>Ваши партнёры</h3>
+                        <a href="#" class="info-badge" id="showStructureInfo">
+                            Подробнее
+                        </a>
+                    </div>
                     <div class="filters">
                         <div class="filter-group">
                             <label for="statusFilter">Фильтр по статусу:</label>
@@ -49,8 +57,9 @@
                                 <option value="all">Все статусы</option>
                                 <option value="Консультант">Консультант</option>
                                 <option value="Пайщик">Пайщик</option>
-                                <option value="Участник">Участник</option>
+                                <option value="Член потребительского кооператива">Член ПК</option>
                                 <option value="Кандидат">Кандидат</option>
+                                <option value="Обработка">Обработка</option>
                                 <option value="Обработка">Обработка</option>
                             </select>
                         </div>
@@ -122,11 +131,81 @@
         </div>
     </div>
 
+    <div id="structureModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3>Информация о ваших партнёрах</h3>
+            <div class="structure-details">
+                <div class="detail-row">
+                    <strong>Ваш уровень консультанта:</strong>
+                    <span id="structure-level">{{ level }}</span>
+                </div>
+                <div class="detail-row">
+                    <strong>Всего в структуре:</strong>
+                    <span id="structure-total">{{ referrals|length }}</span>
+                </div>
+            </div>
+            <div class="structure-stats">
+                <h4>Статистика по статусам:</h4>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span class="stat-label">Консультанты:</span>
+                        <span class="stat-value" id="stat-consultants">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Пайщики:</span>
+                        <span class="stat-value" id="stat-payers">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Участники:</span>
+                        <span class="stat-value" id="stat-members">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Кандидаты:</span>
+                        <span class="stat-value" id="stat-candidates">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Члены ПК:</span>
+                        <span class="stat-value" id="stat-participant">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 <style>
     .banner {
         padding: 20px;
         max-width: 800px;
         margin: 0 auto;
+    }
+
+    /* Стили для заголовка секции с плашкой */
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 15px;
+    }
+
+    .info-badge {
+        background: #007bff;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        border: 1px solid #007bff;
+        margin-top: 0px;
+    }
+
+    .info-badge:hover {
+        background: #0056b3;
+        border-color: #0056b3;
+        color: white;
+        text-decoration: none;
     }
 
     .referral-section {
@@ -200,8 +279,6 @@
         margin-top: 0;
         color: #333;
         font-size: 1.3em;
-        padding-bottom: 10px;
-        border-bottom: 1px solid #eee;
     }
 
     /* Стили для фильтров */
@@ -243,7 +320,7 @@
 
     .btn-reset {
         padding: 8px 16px;
-        background: #6c757d;
+        background: #9ea6adff;
         color: white;
         border: none;
         border-radius: 4px;
@@ -254,7 +331,7 @@
     }
 
     .btn-reset:hover {
-        background: #5a6268;
+        background: #787e83ff;
     }
 
     .partners-list {
@@ -290,6 +367,7 @@
         display: flex;
         align-items: center;
         gap: 15px;
+        flex-wrap: wrap;
     }
 
     .partner-status {
@@ -322,7 +400,7 @@
         display: none;
     }
 
-    /* Стили для модального окна */
+    /* Стили для модальных окон */
     .modal {
         display: none;
         position: fixed;
@@ -361,7 +439,8 @@
         color: #000;
     }
 
-    .partner-details {
+    .partner-details,
+    .structure-details {
         margin-top: 20px;
     }
 
@@ -382,10 +461,59 @@
         min-width: 140px;
     }
 
+    /* Стили для статистики структуры */
+    .structure-stats {
+        margin-top: 25px;
+        padding-top: 20px;
+        border-top: 1px solid #eee;
+    }
+
+    .structure-stats h4 {
+        margin-bottom: 15px;
+        color: #333;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    .stat-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 12px;
+        background: #f8f9fa;
+        border-radius: 6px;
+        border-left: 4px solid #007bff;
+    }
+
+    .stat-label {
+        font-size: 14px;
+        color: #495057;
+    }
+
+    .stat-value {
+        font-weight: 600;
+        color: #007bff;
+        font-size: 16px;
+    }
+
     /* Мобильная версия */
     @media (max-width: 768px) {
         .banner {
             padding: 15px;
+        }
+        
+        .section-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        
+        .info-badge {
+            align-self: flex-start;
         }
         
         .input-group {
@@ -431,10 +559,18 @@
             align-items: flex-start;
             gap: 8px;
         }
+
+        .partner-status {
+            font-size: 10px; /* Уменьшаем шрифт */
+            padding: 7px 0px;
+            flex-wrap: wrap;
+        }
         
         .partner-meta {
             width: 100%;
             justify-content: space-between;
+            gap: 8px;
+            font-size: 11px;
         }
         
         .modal-content {
@@ -452,6 +588,183 @@
         .detail-row strong {
             min-width: auto;
         }
+        
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
     }
 </style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Функции для модального окна информации о партнере
+        const partnerModal = document.getElementById('partnerModal');
+        const structureModal = document.getElementById('structureModal');
+        const closeButtons = document.querySelectorAll('.close');
+        
+        // Обработчик для кнопки "Подробная информация"
+        document.getElementById('showStructureInfo').addEventListener('click', function(e) {
+            e.preventDefault();
+            calculateStructureStats();
+            structureModal.style.display = 'block';
+        });
+        
+        // Обработчики для партнеров
+        document.querySelectorAll('.partner-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.getElementById('modal-name').textContent = this.dataset.name;
+                document.getElementById('modal-email').textContent = this.dataset.email;
+                document.getElementById('modal-phone').textContent = this.dataset.phone;
+                document.getElementById('modal-date').textContent = this.dataset.date;
+                partnerModal.style.display = 'block';
+            });
+        });
+        
+        // Закрытие модальных окон
+        closeButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                partnerModal.style.display = 'none';
+                structureModal.style.display = 'none';
+            });
+        });
+        
+        window.addEventListener('click', function(event) {
+            if (event.target === partnerModal) {
+                partnerModal.style.display = 'none';
+            }
+            if (event.target === structureModal) {
+                structureModal.style.display = 'none';
+            }
+        });
+
+        // Функция для расчета статистики структуры
+        function calculateStructureStats() {
+            const partnerItems = document.querySelectorAll('#referralsList .referral-item');
+            let consultants = 0;
+            let payers = 0;
+            let members = 0;
+            let candidates = 0;
+            let participant = 0;
+
+            partnerItems.forEach(item => {
+                const status = item.dataset.status;
+                switch(status) {
+                    case 'Консультант':
+                        consultants++;
+                        break;
+                    case 'Пайщик':
+                        payers++;
+                        break;
+                    case 'Участник':
+                        members++;
+                        break;
+                    case 'Кандидат':
+                        candidates++;
+                        break;
+                    case 'Член потребительского кооператива':
+                        participant++;
+                        break;
+                }
+            });
+
+            document.getElementById('stat-consultants').textContent = consultants;
+            document.getElementById('stat-payers').textContent = payers;
+            document.getElementById('stat-members').textContent = members;
+            document.getElementById('stat-candidates').textContent = candidates;
+            document.getElementById('stat-candidates').textContent = participant;
+        }
+
+        document.getElementById('copyButton').addEventListener('click', function() {
+            const referralLink = document.getElementById('referralLink');
+            referralLink.select();
+            document.execCommand('copy');
+            this.textContent = 'Скопировано!';
+            setTimeout(() => {
+                this.textContent = 'Копировать';
+            }, 2000);
+        });
+
+        // Обработчик для кнопки "Пригласить участника" - пока ничего не делает
+        document.getElementById('inviteButton').addEventListener('click', function() {
+            this.textContent = 'Ещё не работает';
+        });
+        
+        const statusFilter = document.getElementById('statusFilter');
+        const dateFilter = document.getElementById('dateFilter');
+        const resetButton = document.getElementById('resetFilters');
+        
+        const partnerItemsList = document.querySelectorAll('#referralsList .referral-item');
+        
+        function applyFilters() {
+            const selectedStatus = statusFilter.value;
+            const selectedDate = dateFilter.value;
+            const now = new Date();
+            
+            partnerItemsList.forEach(item => {
+                let showItem = true;
+                const itemStatus = item.dataset.status;
+                const itemTimestamp = parseInt(item.dataset.timestamp) * 1000;
+                const itemDate = new Date(itemTimestamp);
+                
+                // Фильтр по статусу
+                if (selectedStatus !== 'all' && itemStatus !== selectedStatus) {
+                    showItem = false;
+                }
+                
+                // Фильтр по дате
+                if (showItem && selectedDate !== 'all') {
+                    const startOfDay = new Date(now);
+                    startOfDay.setHours(0, 0, 0, 0);
+                    
+                    switch(selectedDate) {
+                        case 'today':
+                            if (itemDate < startOfDay) {
+                                showItem = false;
+                            }
+                            break;
+                        case 'week':
+                            const weekAgo = new Date(now);
+                            weekAgo.setDate(now.getDate() - 7);
+                            if (itemDate < weekAgo) {
+                                showItem = false;
+                            }
+                            break;
+                        case 'month':
+                            const monthAgo = new Date(now);
+                            monthAgo.setMonth(now.getMonth() - 1);
+                            if (itemDate < monthAgo) {
+                                showItem = false;
+                            }
+                            break;
+                        case 'year':
+                            const yearAgo = new Date(now);
+                            yearAgo.setFullYear(now.getFullYear() - 1);
+                            if (itemDate < yearAgo) {
+                                showItem = false;
+                            }
+                            break;
+                    }
+                }
+                
+                if (showItem) {
+                    item.classList.remove('hidden');
+                } else {
+                    item.classList.add('hidden');
+                }
+            });
+        }
+        
+        statusFilter.addEventListener('change', applyFilters);
+        dateFilter.addEventListener('change', applyFilters);
+        
+        resetButton.addEventListener('click', function() {
+            statusFilter.value = 'all';
+            dateFilter.value = 'all';
+            applyFilters();
+        });
+        
+        applyFilters();
+    });
+</script>
+
 {% endblock %}

@@ -27,6 +27,7 @@ urlpatterns = [
     path('reset/<uidb64>/<token>/',views.CustomPasswordResetConfirmView.as_view(),name="password_reset_confirm"),
     path('reset/done/', auth_views.PasswordResetCompleteView.as_view(template_name="personal_account/password_reset_complete.html"), name="password_reset_complete"),
     path('<str:username>/profile_edit_choice', views.ProfileUpdateChoiceView.as_view(), name='profile_edit_choice'),
+    path('referral/document_application_consultant', views.DocumentApplicationView.as_view(), name='document_application_consultant'),
     path('<str:username>/profile_edit_personal_information', views.PersonalInformationUpdateView.as_view(), name='profile_edit_personal_information'),
     path('<str:username>/profile_edit_purchase_information', views.PurchaseInformationUpdateView.as_view(), name='profile_edit_purchase_information'),
     path('<str:username>/profile_edit_source_information', views.SourceInformationnUpdateView.as_view(), name='profile_edit_source_information'),

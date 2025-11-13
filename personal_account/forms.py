@@ -607,3 +607,16 @@ class ProfileQueueForm(forms.ModelForm):
             if f and f.size > 5 * 1024 * 1024:
                 raise md.ValidationError("Файл слишком большой (макс 5MB).")
             return f
+
+
+class ProcessingApplicationForm(forms.ModelForm):
+    class Meta:
+        model = md.Profile_queue
+        fields = ['consultant_contract_photo', 'agree_to_consultant']
+        widgets = {
+            'agree_to_consultant': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+        labels = {
+            'consultant_contract_photo': 'Загрузите фото',
+            'agree_to_consultant': 'Я согласен с условиями',
+        }

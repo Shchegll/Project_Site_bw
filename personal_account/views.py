@@ -8,7 +8,7 @@ from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404, redirect, render
 from django.http import Http404
 from django.contrib.auth.mixins import LoginRequiredMixin
-from .forms import LoginForm, RegistrationForm, ProfileUpdateForm, ProfileAddressForm, ProfileInviteeForm, ProfileQueueForm
+from .forms import LoginForm, RegistrationForm, ProfileUpdateForm, ProfileAddressForm, ProfileInviteeForm, ProfileQueueForm, ProcessingApplicationForm
 from django.core.exceptions import ValidationError
 from .models import Profile, Profile_address, Profile_invitee, Profile_queue, Profile_partner
 from django.conf import settings
@@ -18,6 +18,9 @@ from django.views import View
 from django.db import transaction
 from django.utils import timezone
 from . import utils as reg_utils
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class AccountPageView(TemplateView):
@@ -48,6 +51,23 @@ class CustomHelpView(TemplateView):
 
 class CustomRequisitesView(TemplateView):
     template_name = "personal_account/requisites.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        user = request.user
+
+        if hasattr(user, 'profile_queue') and user.profile_queue:
+            allowed_statuses = ["Член потребительского кооператива", "Пайщик", "Консультант"]
+            if user.profile_queue.status not in allowed_statuses:
+                raise Http404("У вас нет прав доступа к данному разделу")
+        else:
+            raise Http404("Профиль пользователя не настроен")
+
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Реквизиты'
+        return context
 
 
 class RegistrationStartView(View):
@@ -431,27 +451,80 @@ class SourceInformationnUpdateView(LoginRequiredMixin, UpdateView):
 
 class ReferralView(View):
     template_name = 'personal_account/referral.html'
+    supply_template_name = 'personal_account/supply_referral.html'
 
     def get(self, request):
         if not request.user.is_authenticated:
             return redirect('personal_account:login')
 
         user = request.user
+
+        if hasattr(user, 'profile_queue') and user.profile_queue:
+            allowed_statuses = ["Член потребительского кооператива", "Пайщик", "Консультант"]
+            if user.profile_queue.status not in allowed_statuses:
+                raise Http404("У вас нет прав доступа к данному разделу")
+        else:
+            raise Http404("Профиль пользователя не настроен")
+
+        if user.profile_queue.status == "Консультант":
+            try:
+                partner_profile = Profile_partner.objects.get(user=user)
+            except Profile_partner.DoesNotExist:
+                partner_profile = Profile_partner.objects.create(user=user)
+
+            referrals = Profile_partner.objects.filter(referred=user).select_related('user')
+
+            full_referral_link = f"{request.scheme}://{request.get_host()}/personal_account/signup?ref={partner_profile.referral_code}"
+
+            context = {
+                'user_profile': user,
+                'referral_link': full_referral_link,
+                'referral_code': partner_profile.referral_code,
+                'referrals': referrals,
+                'title': 'Реферальная программа',
+                'user_status': user.profile_queue.status,
+                'level': user.profile_partner.consultant_level,
+                'show_referral_info': True  # Флаг для шаблона
+            }
+
+            return render(request, self.template_name, context)
+        else:
+            # Для не-консультантов показываем форму подачи заявки
+            context = {
+                'user_profile': user,
+                'title': 'Стать консультантом',
+                'user_status': user.profile_queue.status,
+                'show_referral_info': False  # Флаг для шаблона
+            }
+
+            return render(request, self.supply_template_name, context)
+
+
+class DocumentApplicationView(LoginRequiredMixin, UpdateView):
+    model = Profile_queue
+    form_class = ProcessingApplicationForm
+    template_name = 'personal_account/document_application.html'
+
+    def get_object(self, queryset=None):
         try:
-            partner_profile = Profile_partner.objects.get(user=user)
-        except Profile_partner.DoesNotExist:
-            partner_profile = Profile_partner.objects.create(user=user)
+            return self.request.user.profile_queue
+        except Profile_queue.DoesNotExist:
+            messages.error(self.request, "Такого профиля не существует")
 
-        # Получаем рефералов пользователя
-        referrals = Profile_partner.objects.filter(referred=user).select_related('user')
+    def dispatch(self, request, *args, **kwargs):
+        user = request.user
 
-        # Формируем полную реферальную ссылку
-        full_referral_link = f"{request.scheme}://{request.get_host()}/personal_account/signup?ref={partner_profile.referral_code}"
+        if hasattr(user, 'profile_queue') and user.profile_queue:
+            allowed_statuses = ["Пайщик"]
+            if user.profile_queue.status not in allowed_statuses:
+                raise Http404("У вас нет прав доступа к данному разделу")
 
-        context = {
-            'referral_link': full_referral_link,
-            'referral_code': partner_profile.referral_code,
-            'referrals': referrals,
-            'title': 'Реферальная программа'
-        }
-        return render(request, self.template_name, context)
+        profile = request.user.profile_queue
+        if profile.agree_to_consultant is True:
+            messages.error(request, "Вы уже заполнили данное заявление, в данный момент идёт обработка")
+            return redirect(self.get_success_url())
+
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_success_url(self):
+        return reverse('personal_account:user_profile', kwargs={'username': self.request.user.username})

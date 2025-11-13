@@ -105,6 +105,11 @@ def clean_document_photo(value):
         raise ValidationError("Максимальный размер фото 5MB")
 
 
+def validate_consultant_level(value):
+    if value is not None and (value < 1 or value > 10):
+        raise ValidationError('Уровень консультанта должен быть от 1 до 10')
+
+
 class Profile(models.Model):
 
     DOCUMENT_CHOICES = [
@@ -355,6 +360,20 @@ class Profile_address(models.Model):
 
 
 class Profile_partner(models.Model):
+
+    CONSULTANT_LEVEL_CHOICES = [
+        (1, 'Уровень 1'),
+        (2, 'Уровень 2'),
+        (3, 'Уровень 3'),
+        (4, 'Уровень 4'),
+        (5, 'Уровень 5'),
+        (6, 'Уровень 6'),
+        (7, 'Уровень 7'),
+        (8, 'Уровень 8'),
+        (9, 'Уровень 9'),
+        (10, 'Уровень 10'),
+    ]
+
     user = models.OneToOneField(User,
                                 on_delete=models.CASCADE,
                                 primary_key=True,
@@ -382,6 +401,13 @@ class Profile_partner(models.Model):
         null=True,
         verbose_name='Реферальная ссылка'
     )
+    consultant_level = models.IntegerField(verbose_name='Уровень консультанта',
+                                           choices=CONSULTANT_LEVEL_CHOICES,
+                                           blank=True,
+                                           null=True,
+                                           default=None,
+                                           validators=[validate_consultant_level]
+                                           )
 
     def save(self, *args, **kwargs):
         if not self.referral_code:
@@ -453,10 +479,26 @@ class Profile_queue(models.Model):
     ]
     STATUS_CHOICES = [
         ('Обработка', 'Обработка'),
+        ('Кандидат', 'Кандидат'),
+        ('Член потребительского кооператива', 'Член потребительского кооператива'),
         ('Пайщик', 'Пайщик'),
         ('Консультант', 'Консультант'),
-        ('Участник', 'Участник'),
-        ('Кандидат', 'Кандидат'),
+        ('Исключён', 'Исключён'),
+        ('Архив', 'Архив'),
+    ]
+
+    ADDITIONAL_STATUS_CHOICES = [
+        ('', '--- Ничего не выбрано ---'),
+        ('В очереди', 'В очереди'),
+        ('На оформлении', 'На оформлении'),
+        ('Формирование 35%', 'Формирование 35%'),
+        ('Формирование 100%', 'Формирование 100%'),
+        ('Должник', 'Должник'),
+        ('Отсутствуют документы', 'Отсутствуют документы'),
+        ('Процесс исключения', 'Процесс исключения'),
+        ('Заявление пайщика', 'Заявление пайщика'),
+        ('Решение совета', 'Решение совета'),
+        ('Завершение целевой программы', 'Завершение целевой программы'),
     ]
 
     type_of_purchase = models.CharField(max_length=10,
@@ -466,11 +508,31 @@ class Profile_queue(models.Model):
                                         blank=True,
                                         )
 
-    status = models.CharField(max_length=25,
-                              verbose_name='Статус',
+    status = models.CharField(max_length=36,
+                              verbose_name='Основоной статус пользователя',
                               choices=STATUS_CHOICES,
                               default='Обработка'
                               )
+
+    consultant_contract_photo = models.ImageField(
+                                    upload_to=contract_photo_upload_path,
+                                    verbose_name="Заявление консультанта",
+                                    null=True,
+                                    blank=True,
+                                    default='',
+                                    validators=[clean_document_photo]
+                                    )
+
+    agree_to_consultant = models.BooleanField(verbose_name='Согдасие на присвоение статуса консультанта',
+                                              null=True,
+                                              default=False
+                                              )
+
+    additional_status = models.CharField(max_length=30,
+                                         verbose_name='Дополнительный статус',
+                                         choices=ADDITIONAL_STATUS_CHOICES,
+                                         default=''
+                                         )
 
     price = models.CharField(max_length=12,
                              verbose_name='Стоимость объекта недвижимости',

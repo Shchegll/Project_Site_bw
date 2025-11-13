@@ -1,0 +1,114 @@
+{% extends "base_personal_account.html" %}
+{% load is_status %}
+{% block content %}
+    <div class="content">
+        <div class="banner">
+            <h2>Партнёрская программа</h2>
+            <div class="buttons-container">
+                <a href="" class="action-button rules-btn">
+                    Ознакомиться с правилами
+                </a>
+                {% with status=user|is_agree %}
+                    {% if status == "False"%}
+                        <a href="" class="action-button download-btn">
+                            Скачать шаблон
+                        </a>
+                        <a href="{% url 'personal_account:document_application_consultant' %}" class="action-button application-btn">
+                            Подать заявление
+                        </a>
+                    {% endif %}
+                {% endwith %}
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .buttons-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-width: 300px;
+            margin: 30px auto;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .action-button {
+            display: block;
+            padding: 15px 25px;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            box-sizing: border-box;
+            width: 100%;
+        }
+
+        .rules-btn {
+            background-color: #f0f8ff;
+            color: rgb(30, 136, 229);
+            border-color: rgb(30, 136, 229);
+        }
+
+        .download-btn {
+            background-color: #f0f8ff;
+            color: rgb(30, 136, 229);
+            border-color: rgb(30, 136, 229);
+        }
+
+        .application-btn {
+            background-color: #f0f8ff;
+            color: rgb(30, 136, 229);
+            border-color: rgb(30, 136, 229);
+        }
+
+        .action-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .rules-btn:hover {
+            background-color: #2d79f4ff;
+            color: white;
+        }
+
+        .download-btn:hover {
+            background-color: #2d79f4ff;
+            color: white;
+        }
+
+        .application-btn:hover {
+            background-color: #2d79f4ff;
+            color: white;
+        }
+
+        /* Мобильная адаптация */
+        @media (max-width: 480px) {
+            .buttons-container {
+                max-width: 100%;
+                margin: 20px 10px;
+                padding: 15px;
+            }
+            
+            .action-button {
+                padding: 12px 20px;
+                font-size: 14px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .buttons-container {
+                margin: 15px 5px;
+                padding: 10px;
+                gap: 10px;
+            }
+            
+            .action-button {
+                padding: 10px 15px;
+                font-size: 13px;
+            }
+        }
+    </style>
+{% endblock %}
