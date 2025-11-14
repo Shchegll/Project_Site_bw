@@ -5,11 +5,13 @@
         <div class="banner">
             <h2>Партнёрская программа</h2>
             <div class="buttons-container">
-                <a href="" class="action-button rules-btn">
-                    Ознакомиться с правилами
-                </a>
                 {% with status=user|is_agree %}
-                    {% if status == "False"%}
+                    {% if status is True%}
+                        <a class="action-button download-btn">
+                            Вы уже подали заявление, ожидайте!
+                        </a>
+                    {% endif %}
+                    {% if status is False%}
                         <a href="" class="action-button download-btn">
                             Скачать шаблон
                         </a>

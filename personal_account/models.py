@@ -531,7 +531,8 @@ class Profile_queue(models.Model):
     additional_status = models.CharField(max_length=30,
                                          verbose_name='Дополнительный статус',
                                          choices=ADDITIONAL_STATUS_CHOICES,
-                                         default=''
+                                         default='',
+                                         blank=True,
                                          )
 
     price = models.CharField(max_length=12,

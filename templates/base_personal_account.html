@@ -61,16 +61,25 @@
                                     <button class="menu-item">Очередь</button>
                                     <button class="menu-item">Долги</button>
                                 {% endif %}
-                                <button id="supply-schedule-btn" class="menu-item">Подать заявление</button>
-                                <div id="supply-schedule-submenu" class="submenu">
-                                    <button class="submenu-item">Стать пайщиком</button>
-                                    {% if status == "False"%}
-                                        <button class="submenu-item" data-url="{% url 'personal_account:referral' %}">Стать консультантом</button>
-                                    {% endif %}
-                                    <button class="submenu-item">На участие в целевой программе</button>
-                                </div>
                             {% endif %}
+                            <button id="supply-schedule-btn" class="menu-item">Подать заявление</button>
+                            <div id="supply-schedule-submenu" class="submenu">
+                                    {% if status == "Пайщик" or status == "Член потребительского кооператива"%}
+                                        {% with agree=user|is_agree %}
+                                            {% if agree is False%}
+                                                <button class="submenu-item" data-url="{% url 'personal_account:referral' %}">Стать консультантом</button>
+                                            {% endif %}
+                                        {% endwith %}
+                                    {% endif %}
+                                    {% if status == "Обработка" or status == "Кандидат"%}
+                                        <button class="submenu-item">На участие в потребительском кооперативе</button>
+                                        <button class="submenu-item">На участие в целевой программе</button>
+                                    {% endif %}
+                                    {% if status == "Консультант" or status == "Член потребительского кооператива" or status == "Пайщик"%}
+                                        <button class="submenu-item">На участие в целевой программе</button>
+                                    {% endif %}
                         {% endwith %}
+                        </div>
                         <button data-url="{% url 'donation' %}" class="menu-item">Добровольное пожертвование</button>
                         <button class="menu-item">Уведомления</button>
                         <button data-url="{% url 'personal_account:help' %}" class="menu-item">Помощь</button>

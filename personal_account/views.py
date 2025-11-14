@@ -515,7 +515,7 @@ class DocumentApplicationView(LoginRequiredMixin, UpdateView):
         user = request.user
 
         if hasattr(user, 'profile_queue') and user.profile_queue:
-            allowed_statuses = ["Пайщик"]
+            allowed_statuses = ["Пайщик", 'Член потребительского кооператива']
             if user.profile_queue.status not in allowed_statuses:
                 raise Http404("У вас нет прав доступа к данному разделу")
 

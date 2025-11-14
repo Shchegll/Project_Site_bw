@@ -1,42 +1,60 @@
 from django.contrib import admin
+from django.contrib.auth.models import User
+from django import forms
 from .models import News
 
 admin.site.site_header = "Панель администратора"
 admin.site.index_title = "Управление сайтом"
 
 
+class NewsAdminForm(forms.ModelForm):
+    class Meta:
+        model = News
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['author'].queryset = User.objects.filter(is_staff=True)
+
+
+class StaffUserFilter(admin.SimpleListFilter):
+    title = 'автор'
+    parameter_name = 'author'
+
+    def lookups(self, request, model_admin):
+        # Все staff-пользователи
+        staff_users = User.objects.filter(is_staff=True)
+        return [(user.id, user.username) for user in staff_users]
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(author__id=self.value())
+        return queryset
+
+
 @admin.register(News)
 class NewsAdmin(admin.ModelAdmin):
-    # Поля, которые отображаются в списке
-    list_display = ['title', 'author', 'created_at', 'updated_at', 'is_important']
-    
-    # Поля для фильтрации справа
-    list_filter = ['created_at', 'updated_at', 'author']
-    
-    # Поля для поиска
+
+    form = NewsAdminForm
+
+    list_display = ['title', 'author', 'is_important', 'created_at']
+
+    list_filter = ['created_at', 'updated_at', StaffUserFilter]
+
     search_fields = ['title', 'content']
-    
-    # Поля, которые можно редактировать прямо из списка
-    # list_editable = []
-    
-    # Автоматическое заполнение slug (если нужно)
-    # prepopulated_fields = {"slug": ("title",)}
-    
-    # Разбивка формы на секции
+
     fieldsets = (
         ('Основная информация', {
             'fields': ('title', 'content')
         }),
         ('Дополнительная информация', {
             'fields': ('author', 'is_important', 'created_at', 'updated_at'),
-            'classes': ('collapse',)  # Сворачиваемая секция
+            'classes': ('collapse',)
         }),
     )
-    
-    # Только для чтения поля
+
     readonly_fields = ['updated_at']
-    
-    # Автоматическое определение автора
+
     def save_model(self, request, obj, form, change):
         if not obj.author:
             obj.author = request.user

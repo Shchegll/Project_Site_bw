@@ -5,34 +5,27 @@ from .models import Profile, Profile_address, Profile_invitee, Profile_partner, 
 admin.site.site_header = "Панель администратора"
 admin.site.index_title = "Управление сайтом"
 
+
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
     list_display = ['user',
+                    'get_first_name',
+                    'get_last_name',
                     'surname',
                     'phone',
-                    'document_type',
-                    'id_document',
-                    'issued_by_whom',
-                    'issued_by_whom',
-                    'inn',
-                    'get_document_photo_main',
-                    'get_document_photo_reg'
                     ]
 
-    list_filter = ['document_type',
-                   'can_edit'
-                   ]
-
-    search_fields = ['user_email',
-                     'user_first_name',
-                     'user_last_name',
+    search_fields = ['user__email',
+                     'user__first_name',
+                     'user__last_name',
                      'surname',
                      'phone',
                      'inn'
                      ]
 
     readonly_fields = ['get_document_photo_main_preview',
-                       'get_document_photo_reg_preview'
+                       'get_document_photo_reg_preview',
+                       'agree_to_terms'
                        ]
 
     fieldsets = (
@@ -55,6 +48,14 @@ class ProfileAdmin(admin.ModelAdmin):
             'fields': ('can_edit', 'agree_to_terms')
         }),
     )
+
+    def get_first_name(self, obj):
+        return obj.user.first_name
+    get_first_name.short_description = 'Имя'
+
+    def get_last_name(self, obj):
+        return obj.user.last_name
+    get_last_name.short_description = 'Фамилия'
 
     def get_document_photo_main(self, obj):
         if obj.document_photo_main:
@@ -91,16 +92,24 @@ class ProfileAdmin(admin.ModelAdmin):
             ]
         return super().formfield_for_choice_field(db_field, request, **kwargs)
 
+
 @admin.register(Profile_address)
 class ProfileAddressAdmin(admin.ModelAdmin):
     list_display = ['user',
-                    'reg_country',
-                    'reg_city',
-                    'reg_address',
-                    'is_approved',
-                    'info']
-    list_filter = ['reg_country', 'is_approved']
-    search_fields = ['user__email', 'reg_city', 'reg_address']
+                    'get_first_name',
+                    'get_last_name',
+                    'info'
+                    ]
+
+    list_filter = ['reg_country', 'reg_region', 'reg_city', 'info']
+    search_fields = ['user__email',
+                     'user__first_name',
+                     'user__last_name',
+                     'user__email',
+                     'reg_city',
+                     'reg_address'
+                     ]
+
     fieldsets = (
         ('Адрес регистрации', {
             'fields': (
@@ -118,8 +127,20 @@ class ProfileAddressAdmin(admin.ModelAdmin):
         }),
         ('Инфа', {
             'fields': ('info',)
-        }), 
+        }),
         )
+
+    def get_first_name(self, obj):
+        return obj.user.first_name
+    get_first_name.short_description = 'Имя'
+
+    def get_last_name(self, obj):
+        return obj.user.last_name
+    get_last_name.short_description = 'Фамилия'
+
+    def get_info(self, obj):
+        return obj.info
+    get_info.short_description = 'Информация'
 
 
 @admin.register(Profile_invitee)
@@ -129,13 +150,16 @@ class ProfileinviteeAdmin(admin.ModelAdmin):
                     'parther_phone',
                     ]
 
+    list_filter = ['parther_phone']
+
     search_fields = [
+        'user__email',
         'parther_name',
         'parther_phone'
     ]
 
     fieldsets = (
-        ('Информация о пригошении', {
+        ('Информация о приглошении', {
             'fields': (
                 'user',
                 'parther_name',
@@ -149,39 +173,38 @@ class ProfileinviteeAdmin(admin.ModelAdmin):
 class ProfileQueueAdmin(admin.ModelAdmin):
     list_display = [
         'user',
+        'get_first_name',
+        'get_last_name',
         'status',
-        'type_of_purchase',
-        'price',
-        'price_in_queue',
         'id_coor',
-        'contract_photo_preview',
     ]
 
     list_filter = [
         'status',
-        'type_of_purchase',
+        'additional_status',
+        'agree_to_consultant',
     ]
 
     search_fields = [
+        'user__email',
+        'user__first_name',
+        'user__last_name',
         'id_coor',
-        'price',
-        'price_in_queue'
     ]
 
-    readonly_fields = ['contract_photo_preview', 'share_payment_photo_preview', 'membership_fee_photo_preview']
+    readonly_fields = ['contract_photo_preview', 'share_payment_photo_preview', 'membership_fee_photo_preview', 'consultant_contract_photo_preview', 'user']
 
     fieldsets = (
-        ('Основная информация', {
+        ('Информация о покупке', {
             'fields': (
                 'user',
-                'status',
                 'type_of_purchase',
                 'price',
                 'price_in_queue',
-                'id_coor'
+                'id_coor',
             )
         }),
-        ('Документы', {
+        ('Основные документы', {
             'fields': (
                 'contract_photo',
                 'contract_photo_preview',
@@ -189,9 +212,34 @@ class ProfileQueueAdmin(admin.ModelAdmin):
                 'share_payment_photo_preview',
                 'membership_fee_photo',
                 'membership_fee_photo_preview',
-            )
+            ),
+            'classes': ('collapse',)
+        }),
+        ('Статус и подтверждающие документы', {
+            'fields': (
+                'status',
+                'agree_to_consultant',
+                'additional_status',
+                'consultant_contract_photo',
+                'consultant_contract_photo_preview',
+            ),
+            'classes': ('collapse',)
         }),
     )
+
+    def get_first_name(self, obj):
+        return obj.user.first_name
+    get_first_name.short_description = 'Имя'
+
+    def get_last_name(self, obj):
+        return obj.user.last_name
+    get_last_name.short_description = 'Фамилия'
+
+    def consultant_contract_photo_preview(self, obj):
+        if obj.consultant_contract_photo:
+            return mark_safe(f'<img src="{obj.consultant_contract_photo.url}" style="max-height: 100px;" />')
+        return "Нет изображения"
+    consultant_contract_photo_preview.short_description = 'Предпросмотр'
 
     def contract_photo_preview(self, obj):
         if obj.contract_photo:
@@ -216,21 +264,26 @@ class ProfileQueueAdmin(admin.ModelAdmin):
 class ProfilePartnerAdmin(admin.ModelAdmin):
     list_display = [
         'user',
+        'get_first_name',
+        'get_last_name',
         'referral_code',
         'referred',
-        'referral_link',
     ]
 
-    readonly_fields = [
-        'referral_code',
-        'referral_link',
-    ]
+    readonly_fields = ['referral_code', 'consultant_level']
+
+    autocomplete_fields = ['referred']
+
+    # Добавьте поисковые поля для autocomplete
+    search_fields = ['user__email', 'user__first_name', 'user__last_name']
+
+    list_filter = ['referred']
 
     fieldsets = (
         ('Основная информация', {
             'fields': (
                 'referral_code',
-                'referral_link',
+                'consultant_level',
             )
         }),
         ('Реферальная система', {
@@ -240,14 +293,10 @@ class ProfilePartnerAdmin(admin.ModelAdmin):
         }),
     )
 
-    def referral_link_display(self, obj):
-        if obj.referral_link:
-            return mark_safe(f'<a href="{obj.referral_link}" target="_blank">{obj.referral_link}</a>')
-        return "Нет ссылки"
-    referral_link_display.short_description = 'Реферальная ссылка'
+    def get_first_name(self, obj):
+        return obj.user.first_name
+    get_first_name.short_description = 'Имя'
 
-    def referred_by(self, obj):
-        if obj.referred:
-            return obj.referred.email
-        return "Не приглашен"
-    referred_by.short_description = 'Приглашен пользователем'
+    def get_last_name(self, obj):
+        return obj.user.last_name
+    get_last_name.short_description = 'Фамилия'

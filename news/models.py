@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils import timezone
+from simple_history.models import HistoricalRecords
 
 User = get_user_model()
 
@@ -21,6 +22,8 @@ class News(models.Model):
         choices=IS_IMPORTANT_CHOICES,
         verbose_name='Важная новость'
     )
+
+    history = HistoricalRecords()
 
     class Meta:
         ordering = ["-is_important", "-created_at"]
