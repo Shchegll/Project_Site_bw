@@ -614,7 +614,11 @@ class ProcessingApplicationForm(forms.ModelForm):
         model = md.Profile_queue
         fields = ['consultant_contract_photo', 'agree_to_consultant']
         widgets = {
-            'agree_to_consultant': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'consultant_contract_photo': forms.FileInput(attrs={'required': 'required'}),
+            'agree_to_consultant': forms.CheckboxInput(attrs={
+                'class': 'form-check-input',
+                'required': 'required'
+                }),
         }
         labels = {
             'consultant_contract_photo': 'Загрузите фото',

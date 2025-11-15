@@ -48,19 +48,21 @@
                         <h3>Меню</h3>
                         <button data-url="{% url 'personal_account:user_profile' username=user.username %}" class="menu-item active">Профиль</button>
                         {% with status=user|is_status_template %}
-                            {% if status == "Кандидат" or status == "Член потребительского кооператива" or status == "Пайщик" or status == "Консультант" %}
-                                {% if status == "Член потребительского кооператива" or status == "Пайщик" or status == "Консультант" %}
-                                    <button id="payment-schedule-btn" class="menu-item">Мои платежи</button>
-                                    <div id="payment-schedule-submenu" class="submenu">
+                            {% if status == "Обработка" or status == "Кандидат" or status == "Член потребительского кооператива" or status == "Пайщик" or status == "Консультант" %}
+                                <button id="payment-schedule-btn" class="menu-item">Мои платежи</button>
+                                <div id="payment-schedule-submenu" class="submenu">
+                                    {% if status == "Член потребительского кооператива" or status == "Пайщик" or status == "Консультант" %}
                                         <button class="submenu-item">График платежей</button>
-                                        <button class="submenu-item">Исторя платежей</button>
-                                        <button class="submenu-item">Сделать платёж</button>
-                                        <button class="submenu-item" data-url="{% url 'personal_account:requisites' %}">Реквизиты</button>
-                                    </div>
-                                    <button class="menu-item" data-url="{% url 'personal_account:referral' %}">Партнёрство</button>
-                                    <button class="menu-item">Очередь</button>
-                                    <button class="menu-item">Долги</button>
-                                {% endif %}
+                                    {% endif %}
+                                    <button class="submenu-item">Исторя платежей</button>
+                                    <button class="submenu-item">Сделать платёж</button>
+                                    <button class="submenu-item" data-url="{% url 'personal_account:requisites' %}">Реквизиты</button>
+                                </div>
+                                    {% if status == "Член потребительского кооператива" or status == "Пайщик" or status == "Консультант" %}
+                                        <button class="menu-item" data-url="{% url 'personal_account:referral' %}">Партнёрство</button>
+                                        <button class="menu-item">Очередь</button>
+                                        <button class="menu-item">Долги</button>
+                                    {% endif %}
                             {% endif %}
                             <button id="supply-schedule-btn" class="menu-item">Подать заявление</button>
                             <div id="supply-schedule-submenu" class="submenu">

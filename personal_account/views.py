@@ -56,7 +56,7 @@ class CustomRequisitesView(TemplateView):
         user = request.user
 
         if hasattr(user, 'profile_queue') and user.profile_queue:
-            allowed_statuses = ["Член потребительского кооператива", "Пайщик", "Консультант"]
+            allowed_statuses = ['Обработка', 'Кандидат', "Член потребительского кооператива", "Пайщик", "Консультант"]
             if user.profile_queue.status not in allowed_statuses:
                 raise Http404("У вас нет прав доступа к данному разделу")
         else:
