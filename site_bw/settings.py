@@ -135,6 +135,8 @@ EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 TOKEN = os.getenv('API_KEY', '')
 
+ADMIN_EMAIL = os.getenv('ADMIN_EMAIL', '')
+
 
 USE_I18N = True
 

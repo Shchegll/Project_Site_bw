@@ -23,6 +23,7 @@ urlpatterns = [
         success_url='/personal_account/password_reset/done/'
     ), name="password_reset"),
     path('referral/', views.ReferralView.as_view(), name='referral'),
+    path('notifications_list/', views.SystemNotificationListView.as_view(), name='notifications_list'),
     path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(template_name="personal_account/password_reset_done.html"), name="password_reset_done"),
     path('reset/<uidb64>/<token>/',views.CustomPasswordResetConfirmView.as_view(),name="password_reset_confirm"),
     path('reset/done/', auth_views.PasswordResetCompleteView.as_view(template_name="personal_account/password_reset_complete.html"), name="password_reset_complete"),

@@ -2,13 +2,156 @@
 {% block content %}
     <div class="content">
         <div class="banner">
-        <h2>Поддержка</h2>
-        <p>По всем возникающим вопросам просим обращаться по электронной почте:</p>
-            <div style="margin: 15px 10; overflow-wrap: break-word;">
-                <a href="mailto:help@bestwaycoop.ru" class="email-link">
-                    help@bestwaycoop.ru
-                </a>
+            <div class="container">
+                <div class="feedback-header">
+                    <h2 class="feedback-title">Обратная связь</h2>
+                    <p class="feedback-subtitle">Опишите вашу проблему, и мы поможем её решить</p>
+                </div>
+
+                <form method="post" enctype="multipart/form-data" class="feedback-form">
+                    {% csrf_token %}
+                    
+                    <div class="form-group">
+                        <label for="{{ form.subject.id_for_label }}" class="form-label">{{ form.subject.label }}</label>
+                        {{ form.subject }}
+                        {% if form.subject.errors %}
+                            <div class="error-message">{{ form.subject.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.message.id_for_label }}" class="form-label">{{ form.message.label }}</label>
+                        {{ form.message }}
+                        {% if form.message.errors %}
+                            <div class="error-message">{{ form.message.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.photo.id_for_label }}" class="form-label">{{ form.photo.label }}</label>
+                        {{ form.photo }}
+                        {% if form.photo.errors %}
+                            <div class="error-message">{{ form.photo.errors }}</div>
+                        {% endif %}
+                        <div class="file-hint">(максимальный размер файла 5MB)</div>
+                    </div>
+
+                    <button type="submit" class="submit-btn">Отправить обращение</button>
+                </form>
             </div>
         </div>
     </div>
+
+    <style>
+        .feedback-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .feedback-title {
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+            font-size: 1.8rem;
+        }
+
+        .feedback-subtitle {
+            color: #7f8c8d;
+            font-size: 1rem;
+        }
+
+        .feedback-form {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 1.5rem;
+            background: #f8f9fa;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        input[type="text"],
+        textarea,
+        input[type="file"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+            box-sizing: border-box;
+        }
+
+        input[type="text"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+
+        .submit-btn {
+            background: #3498db;
+            color: white;
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+            width: 100%;
+        }
+
+        .submit-btn:hover {
+            background: #2980b9;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        .file-hint {
+            font-size: 0.875rem;
+            color: #95a5a6;
+            margin-top: 0.25rem;
+        }
+
+        /* Мобильные стили */
+        @media (max-width: 768px) {
+            .feedback-form {
+                padding: 1rem;
+                margin: 0 0.5rem;
+            }
+
+            .feedback-title {
+                font-size: 1.5rem;
+            }
+
+            .feedback-subtitle {
+                font-size: 0.9rem;
+            }
+
+            input[type="text"],
+            textarea,
+            input[type="file"] {
+                padding: 0.6rem;
+                font-size: 0.9rem;
+            }
+
+            .submit-btn {
+                padding: 0.6rem 1.5rem;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
 {% endblock %}

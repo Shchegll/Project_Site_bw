@@ -83,7 +83,7 @@
                         {% endwith %}
                         </div>
                         <button data-url="{% url 'donation' %}" class="menu-item">Добровольное пожертвование</button>
-                        <button class="menu-item">Уведомления</button>
+                        <button data-url="{% url 'personal_account:notifications_list' %}" class="menu-item">Уведомления</button>
                         <button data-url="{% url 'personal_account:help' %}" class="menu-item">Помощь</button>
                     </div>
                 </div>

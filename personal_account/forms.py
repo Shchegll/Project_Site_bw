@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
-from django.core.validators import RegexValidator
+from django.core.validators import RegexValidator, FileExtensionValidator
 from . import models as md
 
 
@@ -624,3 +624,38 @@ class ProcessingApplicationForm(forms.ModelForm):
             'consultant_contract_photo': 'Загрузите фото',
             'agree_to_consultant': 'Я согласен с условиями',
         }
+
+
+class FeedbackForm(forms.Form):
+    subject = forms.CharField(
+        max_length=50,
+        label='Тема обращения',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Краткое описание'
+        })
+    )
+    message = forms.CharField(
+        label='Подробное описание проблемы',
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'rows': 5,
+            'placeholder': 'Опишите проблему максимально подробно...'
+        })
+    )
+    photo = forms.ImageField(
+        required=False,
+        label='Прикрепить скриншот (если нужно)',
+        validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'gif'])],
+        widget=forms.FileInput(attrs={
+            'class': 'form-control-file',
+            'accept': 'image/*'
+        })
+    )
+
+    def clean_photo(self):
+        photo = self.cleaned_data.get('photo')
+        if photo:
+            if photo.size > 5 * 1024 * 1024:  # 5MB
+                raise forms.ValidationError("Файл слишком большой. Максимальный размер 5MB.")
+        return photo

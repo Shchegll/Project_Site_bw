@@ -1,16 +1,16 @@
 # personal_account/views.py
 from django.contrib.auth.views import LoginView
 from django.contrib.auth.views import PasswordResetConfirmView
-from django.views.generic import TemplateView, CreateView, UpdateView
+from django.views.generic import TemplateView, CreateView, UpdateView, ListView
 from django.urls import reverse_lazy, reverse
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404, redirect, render
 from django.http import Http404
 from django.contrib.auth.mixins import LoginRequiredMixin
-from .forms import LoginForm, RegistrationForm, ProfileUpdateForm, ProfileAddressForm, ProfileInviteeForm, ProfileQueueForm, ProcessingApplicationForm
+from .forms import LoginForm, RegistrationForm, ProfileUpdateForm, ProfileAddressForm, ProfileInviteeForm, ProfileQueueForm, ProcessingApplicationForm, FeedbackForm
 from django.core.exceptions import ValidationError
-from .models import Profile, Profile_address, Profile_invitee, Profile_queue, Profile_partner
+from .models import Profile, Profile_address, Profile_invitee, Profile_queue, Profile_partner, SystemNotification, MessageNotification
 from django.conf import settings
 from django.contrib.auth import login
 from django.contrib.auth.hashers import make_password
@@ -18,6 +18,7 @@ from django.views import View
 from django.db import transaction
 from django.utils import timezone
 from . import utils as reg_utils
+from django.core.mail import EmailMessage
 import logging
 
 logger = logging.getLogger(__name__)
@@ -47,6 +48,70 @@ class CustomPlugView(TemplateView):
 
 class CustomHelpView(TemplateView):
     template_name = "personal_account/help.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if 'form' not in context:
+            context['form'] = FeedbackForm()
+        return context
+
+    def post(self, request, *args, **kwargs):
+        form = FeedbackForm(request.POST, request.FILES)
+
+        if form.is_valid():
+            try:
+                # Получаем данные из формы
+                subject = form.cleaned_data['subject']
+                message = form.cleaned_data['message']
+                photo = form.cleaned_data['photo']
+
+                # Информация о пользователе
+                user_info = ""
+                if request.user.is_authenticated:
+                    user_info = f"""
+                    Информация о пользователе:
+                    - Пользователь: {request.user.username}
+                    - ФИО: {request.user.first_name} {request.user.last_name}
+                    - Номер: {request.user.profile.phone}
+                    - ID: {request.user.id}
+                    """
+
+                # Создаем email сообщение для отправки на ВАШУ почту
+                email = EmailMessage(
+                    subject=f'Обратная связь от пользователя: {request.user.username}',
+                    body=f"""
+                    {user_info}
+                    ---
+                    Тема:
+                    {subject}
+                    ---
+                    Сообщение:
+                    {message}
+
+                    Это сообщение отправлено через форму обратной связи сайта
+
+                    ---
+                    Прикреплённый файл - {photo}
+                    """,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    to=[settings.ADMIN_EMAIL],
+                )
+
+                if photo:
+                    email.attach(photo.name, photo.read(), photo.content_type)
+
+                email.send()
+
+                messages.success(request, "Ваше сообщение успешно отправлено! Мы свяжемся с вами в ближайшее время.")
+                return render(request, self.template_name, {'form': FeedbackForm()})
+            except Exception as e:
+                messages.error(request, f"Произошла ошибка при отправке: {str(e)}")
+        else:
+            messages.error(request, "Пожалуйста, исправьте ошибки в форме.")
+
+        context = self.get_context_data()
+        context['form'] = form
+        return render(request, self.template_name, context)
 
 
 class CustomRequisitesView(TemplateView):
@@ -528,3 +593,36 @@ class DocumentApplicationView(LoginRequiredMixin, UpdateView):
 
     def get_success_url(self):
         return reverse('personal_account:user_profile', kwargs={'username': self.request.user.username})
+
+
+class SystemNotificationListView(LoginRequiredMixin, TemplateView):
+    template_name = 'personal_account/notifications_list.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        user_status = self.request.user.profile_queue.status
+
+        context['system_notifications'] = SystemNotification.objects.filter(
+            status=user_status
+        )
+
+        unread_messages = MessageNotification.objects.filter(
+            to_user=self.request.user,
+            is_read=False
+        )
+
+        unread_messages.update(is_read=True)
+
+        context['personal_messages'] = MessageNotification.objects.filter(
+            to_user=self.request.user
+        )
+
+        context['user_status'] = user_status
+        context['system_notifications_count'] = context['system_notifications'].count()
+        context['personal_messages_count'] = context['personal_messages'].count()
+        context['total_notifications'] = (
+            context['system_notifications_count'] + context['personal_messages_count']
+        )
+
+        return context

@@ -1,12 +1,14 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
-from .models import Profile, Profile_address, Profile_invitee, Profile_partner, Profile_queue
+from . import models as md
+from django.utils.html import format_html
+from django.utils import timezone
 
 admin.site.site_header = "Панель администратора"
 admin.site.index_title = "Управление сайтом"
 
 
-@admin.register(Profile)
+@admin.register(md.Profile)
 class ProfileAdmin(admin.ModelAdmin):
     list_display = ['user',
                     'get_first_name',
@@ -93,7 +95,7 @@ class ProfileAdmin(admin.ModelAdmin):
         return super().formfield_for_choice_field(db_field, request, **kwargs)
 
 
-@admin.register(Profile_address)
+@admin.register(md.Profile_address)
 class ProfileAddressAdmin(admin.ModelAdmin):
     list_display = ['user',
                     'get_first_name',
@@ -143,7 +145,7 @@ class ProfileAddressAdmin(admin.ModelAdmin):
     get_info.short_description = 'Информация'
 
 
-@admin.register(Profile_invitee)
+@admin.register(md.Profile_invitee)
 class ProfileinviteeAdmin(admin.ModelAdmin):
     list_display = ['user',
                     'parther_name',
@@ -169,7 +171,7 @@ class ProfileinviteeAdmin(admin.ModelAdmin):
     )
 
 
-@admin.register(Profile_queue)
+@admin.register(md.Profile_queue)
 class ProfileQueueAdmin(admin.ModelAdmin):
     list_display = [
         'user',
@@ -260,7 +262,7 @@ class ProfileQueueAdmin(admin.ModelAdmin):
     membership_fee_photo_preview.short_description = 'Предпросмотр'
 
 
-@admin.register(Profile_partner)
+@admin.register(md.Profile_partner)
 class ProfilePartnerAdmin(admin.ModelAdmin):
     list_display = [
         'user',
@@ -300,3 +302,168 @@ class ProfilePartnerAdmin(admin.ModelAdmin):
     def get_last_name(self, obj):
         return obj.user.last_name
     get_last_name.short_description = 'Фамилия'
+
+
+@admin.register(md.SystemNotification)
+class SystemNotificationAdmin(admin.ModelAdmin):
+    list_display = [
+        'title',
+        'status_display',
+        'created_at',
+    ]
+
+    list_filter = [
+        'status',
+        'priority',
+        'notification_type',
+        'created_at',
+    ]
+
+    search_fields = [
+        'title',
+        'message',
+        'status',
+        'notification_type',
+        'created_at'
+    ]
+
+    readonly_fields = [
+        'created_at',
+        'updated_at',
+        'notification_type'
+    ]
+
+    fieldsets = (
+        ('Основная информация', {
+            'fields': ('title', 'message')
+        }),
+        ('Настройки уведомления', {
+            'fields': ('status', 'priority', 'notification_type')
+        }),
+        ('Даты', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+    def status_display(self, obj):
+        status_colors = {
+            'Обработка': 'orange',
+            'Кандидат': 'blue',
+            'Член потребительского кооператива': 'green',
+            'Пайщик': 'darkgreen',
+            'Консультант': 'purple',
+            'Исключён': 'red',
+            'Архив': 'gray',
+            '': 'lightgray'
+        }
+        color = status_colors.get(obj.status, 'lightgray')
+        return format_html(
+            '<span style="color: {}; font-weight: bold;">{}</span>',
+            color,
+            obj.get_status_display()
+        )
+    status_display.short_description = 'Статус'
+
+    def priority_display(self, obj):
+        priority_colors = {
+            1: 'green',   # Низкий
+            2: 'orange',  # Средний
+            3: 'red'      # Высокий
+        }
+        color = priority_colors.get(obj.priority, 'black')
+        return format_html(
+            '<span style="color: {}; font-weight: bold;">{}</span>',
+            color,
+            obj.get_priority_display()
+        )
+    priority_display.short_description = 'Приоритет'
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related()
+
+
+@admin.register(md.MessageNotification)
+class MessageNotificationAdmin(admin.ModelAdmin):
+    list_display = [
+        'title',
+        'to_user',
+        'is_read_display',
+        'read_at',
+        'created_at'
+    ]
+
+    list_filter = [
+        'is_read',
+        'created_at',
+        'read_at',
+        'to_user'
+    ]
+
+    search_fields = [
+        'title',
+        'message',
+        'to_user__username',
+        'to_user__email',
+        'to_user__first_name',
+        'to_user__last_name'
+    ]
+
+    readonly_fields = [
+        'created_at',
+        'read_at'
+    ]
+
+    autocomplete_fields = ['to_user']
+
+    fieldsets = (
+        ('Получатель', {
+            'fields': ('to_user',)
+        }),
+        ('Содержание сообщения', {
+            'fields': ('title', 'message')
+        }),
+        ('Статус прочтения', {
+            'fields': ('is_read', 'read_at'),
+            'classes': ('collapse',)
+        }),
+        ('Даты', {
+            'fields': ('created_at',),
+            'classes': ('collapse',)
+        }),
+    )
+
+    def is_read_display(self, obj):
+        if obj.is_read:
+            return format_html(
+                '<span style="color: green; font-weight: bold;">✓ Прочитано</span>'
+            )
+        else:
+            return format_html(
+                '<span style="color: red; font-weight: bold;">✗ Не прочитано</span>'
+            )
+    is_read_display.short_description = 'Статус прочтения'
+
+    def mark_as_read(self, request, queryset):
+        updated = queryset.filter(is_read=False).update(
+            is_read=True,
+            read_at=timezone.now()
+        )
+        self.message_user(
+            request, 
+            f'{updated} сообщений помечено как прочитанные'
+        )
+    mark_as_read.short_description = 'Пометить выбранные как прочитанные'
+
+    actions = ['mark_as_read']
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('to_user')
+
+    def save_model(self, request, obj, form, change):
+        # Автоматически устанавливаем read_at при отметке как прочитанное
+        if obj.is_read and not obj.read_at:
+            obj.read_at = timezone.now()
+        elif not obj.is_read:
+            obj.read_at = None
+        super().save_model(request, obj, form, change)

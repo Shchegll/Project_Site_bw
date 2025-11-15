@@ -10,6 +10,8 @@ import random
 import string
 import os
 import re
+from django.utils import timezone
+
 
 
 def validate_phone(value):
@@ -592,6 +594,90 @@ class Profile_queue(models.Model):
         verbose_name = "Информация о статусе"
         verbose_name_plural = "Информация о статусе"
 
+
+class NotificationType(models.TextChoices):
+    MESSAGE = 'message', 'Сообщение'
+
+
+class SystemNotification(models.Model):
+
+    STATUS_CHOICES = [
+        ('', '--- Ничего не выбрано ---'),
+        ('Обработка', 'Обработка'),
+        ('Кандидат', 'Кандидат'),
+        ('Член потребительского кооператива', 'Член потребительского кооператива'),
+        ('Пайщик', 'Пайщик'),
+        ('Консультант', 'Консультант'),
+        ('Исключён', 'Исключён'),
+        ('Архив', 'Архив'),
+    ]
+
+    title = models.CharField(max_length=255, verbose_name='Заголовок')
+
+    message = models.TextField(verbose_name='Текст уведомления')
+
+    notification_type = models.CharField(
+        max_length=20,
+        default='Системное',
+        verbose_name='Тип уведомления'
+    )
+
+    status = models.CharField(
+        max_length=36,
+        choices=STATUS_CHOICES,
+        blank=True,
+        default='',
+        verbose_name='Статус'
+    )
+
+    priority = models.IntegerField(
+        choices=[(1, 'Низкий'), (2, 'Средний'), (3, 'Высокий')],
+        default=2,
+        verbose_name='Приоритет'
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='Дата обновления')
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Системное сообщение'
+        verbose_name_plural = 'Системные сообщения'
+
+    def __str__(self):
+        return f"{self.title} - {self.get_status_display()}"
+
+
+class MessageNotification(models.Model):
+    to_user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='message_notification',
+        verbose_name='Сообщение для пользователя'
+    )
+    title = models.CharField(max_length=255, verbose_name='Заголовок')
+    message = models.TextField(verbose_name='Текст сообщения')
+    read_at = models.DateTimeField(null=True, blank=True, verbose_name='Время прочтения')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Создано')
+    is_read = models.BooleanField(default=False, verbose_name='Прочитано')
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Личное сообщение'
+        verbose_name_plural = 'Личные сообщения'
+        indexes = [
+            models.Index(fields=['to_user', 'is_read', 'created_at']),
+            models.Index(fields=['created_at']),
+        ]
+
+    def __str__(self):
+        return f"Сообщение от Администарции для {self.to_user}"
+
+    def mark_as_read(self):
+        if not self.is_read:
+            self.is_read = True
+            self.read_at = timezone.now()
+            self.save()
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):

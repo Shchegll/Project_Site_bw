@@ -1,0 +1,332 @@
+{% extends "base_personal_account.html" %}
+{% load is_status %}
+{% block content %}
+    <div class="content">
+        <div class="notifications-header">
+            <h1 class="page-title">Мои уведомления</h1>
+        </div>
+
+        <section class="messages-section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="icon-message"></i>
+                    Личные сообщения
+                    {% if personal_messages %}
+                    <span class="message-count">({{ personal_messages_count }})</span>
+                    {% endif %}
+                </h2>
+            </div>
+
+            {% if personal_messages %}
+            <div class="messages-list">
+                {% for message in personal_messages %}
+                <div class="message-card {% if not message.is_read %}unread{% endif %}">
+                    <div class="message-header">
+                        <h3 class="message-title">{{ message.title }}</h3>
+                        <div class="message-meta">
+                            {% if not message.is_read %}
+                            <span class="status-badge unread-badge">Новое</span>
+                            {% endif %}
+                            <span class="message-date">Сообщение пришло - {{ message.created_at|date:"d.m.Y H:i" }}</span>
+                        </div>
+                    </div>
+                    <div class="message-content">
+                        <p>{{ message.message }}</p>
+                    </div>
+                    <div class="message-footer">
+                        {% if message.is_read %}
+                        <span class="read-status">Прочитано {{ message.read_at|date:"d.m.Y H:i" }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">💬</div>
+                <p class="empty-text">У вас пока нет личных сообщений</p>
+            </div>
+            {% endif %}
+        </section>
+
+        <section class="system-notifications-section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="icon-system"></i>
+                    Системные уведомления
+                    {% if system_notifications %}
+                    <span class="message-count">({{ system_notifications_count }})</span>
+                    {% endif %}
+                </h2>
+            </div>
+
+            {% if system_notifications %}
+            <div class="notifications-list">
+                {% for notification in system_notifications %}
+                <div class="notification-card priority-{{ notification.priority }}">
+                    <div class="notification-header">
+                        <h3 class="notification-title">{{ notification.title }}</h3>
+                    </div>
+                    <div class="notification-content">
+                        <p>{{ notification.message }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">🔔</div>
+                <p class="empty-text">У вас пока нет системных сообщений</p>
+            </div>
+            {% endif %}
+        </section>
+    </div>
+
+    <style>
+        /* Основные стили */
+        .content {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .notifications-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e3f2fd;
+        }
+
+        .page-title {
+            color: #1976d2;
+            margin: 0;
+            font-size: 28px;
+        }
+
+        .summary-badge {
+            background: #1976d2;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            text-align: center;
+            min-width: 120px;
+        }
+
+        .badge-count {
+            display: block;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .badge-text {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        /* Секции */
+        .messages-section {
+            margin-bottom: 40px;
+        }
+
+        .system-notifications-section {
+            margin-bottom: 20px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e3f2fd;
+        }
+
+        .section-title {
+            color: #1976d2;
+            margin: 0;
+            font-size: 22px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .message-count {
+            color: #666;
+            font-size: 18px;
+        }
+
+        .status-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-label {
+            color: #666;
+        }
+
+        .status-value {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-weight: 500;
+        }
+
+        /* Карточки сообщений */
+        .messages-list,
+        .notifications-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message-card,
+        .notification-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .message-card.unread {
+            border-left: 4px solid #1976d2;
+            background: #f8fdff;
+        }
+
+        .message-card:hover,
+        .notification-card:hover {
+            box-shadow: 0 4px 8px rgba(25, 118, 210, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .message-header,
+        .notification-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .message-title,
+        .notification-title {
+            color: #333;
+            margin: 0;
+            font-size: 18px;
+            flex: 1;
+        }
+
+        .message-meta,
+        .notification-meta {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .status-badge,
+        .priority-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .unread-badge {
+            background: #1976d2;
+            color: white;
+        }
+
+        .priority-1 { background: #e8f5e8; color: #2e7d32; }
+        .priority-2 { background: #fff3e0; color: #ef6c00; }
+        .priority-3 { background: #ffebee; color: #c62828; }
+
+        .message-date,
+        .notification-date {
+            color: #666;
+            font-size: 12px;
+        }
+
+        .message-content,
+        .notification-content {
+            color: #555;
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+
+        .message-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 10px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .read-status {
+            color: #666;
+            font-size: 12px;
+        }
+
+        .mark-read-btn {
+            background: #1976d2;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.3s ease;
+        }
+
+        .mark-read-btn:hover {
+            background: #1565c0;
+        }
+
+        /* Состояние пустого списка */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .empty-text {
+            margin: 0;
+            font-size: 16px;
+        }
+
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .notifications-header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .message-header,
+            .notification-header {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .message-meta,
+            .notification-meta {
+                align-self: flex-start;
+            }
+        }
+    </style>
+{% endblock %}
