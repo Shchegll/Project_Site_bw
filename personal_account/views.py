@@ -12,7 +12,7 @@ from .forms import LoginForm, RegistrationForm, ProfileUpdateForm, ProfileAddres
 from django.core.exceptions import ValidationError
 from .models import Profile, Profile_address, Profile_invitee, Profile_queue, Profile_partner, SystemNotification, MessageNotification
 from django.conf import settings
-from django.contrib.auth import login
+from django.core.mail import send_mail
 from django.contrib.auth.hashers import make_password
 from django.views import View
 from django.db import transaction
@@ -20,6 +20,8 @@ from django.utils import timezone
 from . import utils as reg_utils
 from django.core.mail import EmailMessage
 import logging
+import string
+import secrets
 
 logger = logging.getLogger(__name__)
 
@@ -76,7 +78,6 @@ class CustomHelpView(TemplateView):
                     - ID: {request.user.id}
                     """
 
-                # Создаем email сообщение для отправки на ВАШУ почту
                 email = EmailMessage(
                     subject=f'Обратная связь от пользователя: {request.user.username}',
                     body=f"""
@@ -140,27 +141,33 @@ class RegistrationStartView(View):
     form_class = RegistrationForm
 
     def get(self, request):
+
+        user = request.user
+
+        if hasattr(user, 'profile_queue') and user.profile_queue:
+            allowed_statuses = ["Консультант"]
+            if user.profile_queue.status not in allowed_statuses:
+                raise Http404("У вас нет прав доступа к данному разделу")
+        else:
+            raise Http404("Профиль пользователя не настроен")
+
         form = self.form_class()
-
-        referral_code = request.GET.get('ref', '')
-        referrer = None
-
-        if referral_code:
-            try:
-                referrer_profile = Profile_partner.objects.get(referral_code=referral_code)
-                referrer = referrer_profile.user
-                request.session['referrer_id'] = referrer.id
-                messages.info(request, f"Вы регистрируетесь по приглашению пользователя '{referrer.last_name} {referrer.first_name}'")
-            except Profile_partner.DoesNotExist:
-                messages.warning(request, "Неверная реферальная ссылка")
-
         return render(request, self.template_name, {
             'form': form,
-            'title': 'Регистрация на сайте',
-            'referrer': referrer
+            'title': 'Регистрация на сайте'
         })
 
     def post(self, request):
+
+        user = request.user
+
+        if hasattr(user, 'profile_queue') and user.profile_queue:
+            allowed_statuses = ["Консультант"]
+            if user.profile_queue.status not in allowed_statuses:
+                raise Http404("У вас нет прав доступа к данному разделу")
+        else:
+            raise Http404("Профиль пользователя не настроен")
+
         form = self.form_class(request.POST)
         if not form.is_valid():
             return render(request, self.template_name, {'form': form})
@@ -170,102 +177,89 @@ class RegistrationStartView(View):
             form.add_error('email', "Пользователь с таким email уже существует.")
             return render(request, self.template_name, {'form': form})
 
-        if not reg_utils.can_send_code(email):
-            messages.error(request, "Слишком много попыток отправки. Попробуйте позже.")
-            return render(request, self.template_name, {'form': form})
+        generated_password = self._generate_password()
 
-        code = reg_utils.generate_code(6)
+        user_ref = request.user
 
-        hashed_password = make_password(form.cleaned_data['password1'])
+        parther_name = str(user_ref.last_name) + str(' ') + str(user_ref.first_name)
 
-        data = {
-            'email': email,
-            'username': email,
-            'first_name': form.cleaned_data['first_name'],
-            'last_name': form.cleaned_data['last_name'],
-            'phone': form.cleaned_data['phone'],
-            'agree_to_terms': form.cleaned_data['agree_to_terms'],
-            'password_hash': hashed_password,
-            'created_at': timezone.now().isoformat(),
-        }
-
-        referrer_id = request.session.get('referrer_id')
-        if referrer_id:
-            data['referrer_id'] = referrer_id
-
-        reg_utils.cache_registration_data(code, email, data)
-        reg_utils.send_confirmation_email(email, code)
-
-        request.session['pending_email'] = email
-
-        return render(request, 'personal_account/verify_email.html', {'email': email})
-
-
-class VerifyRegistrationView(View):
-    template_name = 'personal_account/verify_email.html'
-
-    def get(self, request):
-        email = request.session.get('pending_email', '')
-        return render(request, self.template_name, {'email': email})
-
-    def post(self, request):
-        input_code = request.POST.get('code', '').strip()
-        data = reg_utils.get_registration_data_by_code(input_code)
-        if not data:
-            messages.error(request, "Код неверный или просрочен. Попробуйте запросить код заново.")
-            return render(request, self.template_name, {'email': request.session.get('pending_email', '')})
-
-        email = data['email']
-        if User.objects.filter(email=email).exists():
-            messages.error(request, "Пользователь с таким email уже зарегистрирован.")
-            reg_utils.delete_registration_data(input_code, email)
-            return redirect(reverse_lazy('personal_account:login'))
+        parther_phone = user_ref.profile.phone
 
         try:
             with transaction.atomic():
                 user = User.objects.create(
-                    username=data['username'],
-                    email=data['email'],
-                    first_name=data['first_name'],
-                    last_name=data['last_name'],
-                    password=data['password_hash'],
+                    username=email,
+                    email=email,
+                    first_name=form.cleaned_data['first_name'],
+                    last_name=form.cleaned_data['last_name'],
+                    password=make_password(generated_password),
                 )
 
                 profile_defaults = {
-                    'phone': data.get('phone', ''),
-                    'agree_to_terms': data.get('agree_to_terms', False),
+                    'phone': form.cleaned_data['phone'],
+                    'agree_to_terms': form.cleaned_data['agree_to_terms'],
                     'can_edit': True,
                 }
 
                 Profile.objects.update_or_create(user=user, defaults=profile_defaults)
+                Profile_partner.objects.get_or_create(user=user,
+                                                      defaults={'referred': user_ref}
+                                                      )
+                Profile_invitee.objects.get_or_create(user=user,
+                                                      defaults={'parther_name': parther_name,
+                                                                'parther_phone': parther_phone
+                                                                }
+                                                      )
 
-                partner_profile, created = Profile_partner.objects.get_or_create(user=user)
-
-                referrer_id = data.get('referrer_id')
-                if referrer_id:
-                    try:
-                        referrer = User.objects.get(id=referrer_id)
-                        partner_profile.referred_id = referrer.id
-                        partner_profile.save()
-
-                        messages.success(request, f"Вы успешно зарегистрированы по приглашению пользователя '{referrer.last_name} {referrer.first_name}'")
-
-                        if 'referrer_id' in request.session:
-                            del request.session['referrer_id']
-                    except User.DoesNotExist:
-                        pass
+                # Отправка письма с паролем
+                self._send_password_email(email, generated_password)
 
         except ValidationError as e:
-            reg_utils.delete_registration_data(input_code, email)
-            request.session.pop('pending_email', None)
-            return redirect(reverse('personal_account:signup'))
+            messages.error(request, "Произошла ошибка при регистрации. Попробуйте еще раз.")
+            return render(request, self.template_name, {'form': form})
 
-        reg_utils.delete_registration_data(input_code, email)
-        request.session.pop('pending_email', None)
+        messages.success(request, f"Регистрация успешно завершена! Вся информация была отправлен пользователю на почту")
+        return redirect(reverse('personal_account:referral'))
 
-        login(request, user)
-        messages.success(request, "Email подтверждён. Заполните, пожалуйста, основные поля профиля.")
-        return redirect(reverse('personal_account:user_profile', kwargs={'username': request.user.username}))
+    def _generate_password(self, length=12):
+        """Генерация случайного пароля"""
+        characters = string.ascii_letters + string.digits + "!@#$%^&*"
+        return ''.join(secrets.choice(characters) for _ in range(length))
+
+    def _send_password_email(self, email, password):
+        """Отправка письма с паролем"""
+        try:
+            subject = 'Ваш пароль для входа на сайт'
+            message = f'''
+Благодарим вас за регистрацию!
+
+Ваши данные для входа:
+
+Email: {email}
+Пароль: {password}
+Ссалка для входа на сайт: 
+
+---
+
+Пароль сгенерирован автоматически, просим сменить его после первого входа в личный кабинет
+---
+
+Также заполните все данные в личном кабинете
+
+---
+
+С уважением,
+Команда Наш дом
+            '''
+
+            from_email = settings.DEFAULT_FROM_EMAIL
+            recipient_list = [email]
+
+            send_mail(subject, message, from_email, recipient_list)
+
+        except Exception as e:
+            # Логируем ошибку, но не прерываем регистрацию
+            print(f"Ошибка отправки письма: {e}")
 
 
 class ResendCodeView(View):

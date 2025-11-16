@@ -1,10 +1,10 @@
 /* Цветовая палитра */
 :root {
-    --primary-blue: rgb(30, 136, 229);
-    --dark-blue: rgb(21, 101, 192);
+    --primary-blue: #00a658;
+    --dark-blue: #007c42;
     --red: #d32f2f;
-    --light-orange: #f3a33a;
-    --accent-blue: #82b1ff;
+    --light-orange: #38cf65;
+    --accent-blue: #19c273;
     --text-color: #333;
     --white: #ffffff;
     --shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
@@ -83,8 +83,8 @@ html, body {
 }
 
 .auth-button:hover {
-    background-color: #379bf3;
-    border-color: #ffa726;
+    background-color: #00a658;
+    border-color: #38cf65;
     color: white;
     text-decoration: none;
 }
@@ -265,7 +265,7 @@ html, body {
 
 .menu-item:hover { background: #e9ecef; border-color: #ced4da; }
 
-.menu-item.active { background: #007bff; color: white; border-color: #007bff; font-weight: 500; }
+.menu-item.active { background: #00a658; color: white; border-color: #00a658; font-weight: 500; }
 
 .content { width: 66.667%; padding: 30px; }
 
@@ -290,15 +290,15 @@ html, body {
 
 .profile-actions { margin-top: 25px; padding-top: 15px; border-top: 1px solid #e9ecef; }
 
-.edit-button { display: inline-block; padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 6px; font-weight: 500; transition: background 0.2s ease; }
-.edit-button:hover { background: #0069d9; text-decoration: none; color: white; }
+.edit-button { display: inline-block; padding: 10px 20px; background: #00a658; color: white; text-decoration: none; border-radius: 6px; font-weight: 500; transition: background 0.2s ease; }
+.edit-button:hover { background: #00a658; text-decoration: none; color: white; }
 
 .submenu {
     display: none;
     margin-left: 15px;
     margin-top: 5px;
     background: #ffffff;
-    border-left: 3px solid #007bff;
+    border-left: 3px solid #00a658;
     border-radius: 6px;
     padding: 8px 10px;
     box-shadow: 0 1px 5px rgba(0,0,0,0.1);

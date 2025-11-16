@@ -154,6 +154,10 @@ class ProfileinviteeAdmin(admin.ModelAdmin):
 
     list_filter = ['parther_phone']
 
+    readonly_fields = [
+        'user',
+    ]
+
     search_fields = [
         'user__email',
         'parther_name',

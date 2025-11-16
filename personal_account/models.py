@@ -6,12 +6,13 @@ from django.core.validators import RegexValidator
 from simple_history.models import HistoricalRecords
 from django.contrib.auth.models import User
 from uuid import uuid4
+from django.conf import settings
+from django.core.mail import send_mail
 import random
 import string
 import os
 import re
 from django.utils import timezone
-
 
 
 def validate_phone(value):
@@ -667,13 +668,54 @@ class MessageNotification(models.Model):
         ]
 
     def __str__(self):
-        return f"Сообщение от Администарции для {self.to_user}"
+        return f"Сообщение от Администрации для {self.to_user}"
+
+    def save(self, *args, **kwargs):
+        # Проверяем, новая ли это запись
+        is_new = self.pk is None
+
+        # Сохраняем объект
+        super().save(*args, **kwargs)
+
+        # Отправляем email только для новых уведомлений
+        if is_new:
+            self.send_notification_email()
+
+    def send_notification_email(self):
+        """Отправка email уведомления"""
+        # Проверяем, что у пользователя есть email
+        if not self.to_user.email:
+            return
+
+        subject = f"Вам пришло новое уведомление"
+
+        # Текстовое содержимое письма
+        plain_message = f"""
+Здравствуйте! Вам пришло новое сообщение, проверте вкладну "Уведомления"
+
+---
+Это автоматическое уведомление от администрации сайта.
+Пожалуйста, не отвечайте на это письмо.
+        """
+
+        try:
+            send_mail(
+                subject=subject,
+                message=plain_message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[self.to_user.email],
+                fail_silently=False,  # Если True - ошибки будут игнорироваться
+            )
+        except Exception as e:
+            # Логируем ошибку, но не прерываем сохранение уведомления
+            print(f"Ошибка отправки email для уведомления {self.id}: {e}")
 
     def mark_as_read(self):
         if not self.is_read:
             self.is_read = True
             self.read_at = timezone.now()
             self.save()
+
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):

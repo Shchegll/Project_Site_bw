@@ -25,12 +25,20 @@ class LoginForm(AuthenticationForm):
         })
     )
 
+    agree_to_terms = forms.BooleanField(
+        label='Согласен с условиями обработки персональных данных',
+        widget=forms.CheckboxInput(attrs={
+            'class': 'form-check-input',
+            'required': True
+        })
+    )
+
     class Meta:
         model = User
-        fields = ['username', 'password']
+        fields = ['username', 'password', 'agree_to_terms']
 
 
-class RegistrationForm(UserCreationForm):
+class RegistrationForm(forms.ModelForm):
     email = forms.EmailField(
         label='Email',
         widget=forms.EmailInput(attrs={
@@ -73,63 +81,16 @@ class RegistrationForm(UserCreationForm):
             'autocomplete': 'tel'
         })
     )
-    password1 = forms.CharField(
-        max_length=128,
-        label='Пароль',
-        widget=forms.PasswordInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Введите пароль',
-            'required': True,
-            'autocomplete': 'new-password'
-        })
-    )
-    password2 = forms.CharField(
-        max_length=128,
-        label='Подтверждение пароля',
-        widget=forms.PasswordInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Повторите пароль',
-            'required': True,
-            'autocomplete': 'new-password'
-        })
-    )
-    agree_to_terms = forms.BooleanField(
-        label='Согласен с условиями обработки персональных данных',
-        widget=forms.CheckboxInput(attrs={
-            'class': 'form-check-input',
-            'required': True
-        })
-    )
 
     class Meta:
         model = User
-        fields = ['email',
-                  'first_name',
-                  'last_name',
-                  'phone',
-                  'password1',
-                  'password2',
-                  'agree_to_terms']
+        fields = ['email', 'first_name', 'last_name', 'phone']
 
     def clean_email(self):
         email = self.cleaned_data['email']
         if User.objects.filter(email=email).exists():
             raise forms.ValidationError("Пользователь с таким email уже существует.")
         return email
-
-    def save(self, commit=True):
-        user = super().save(commit=False)
-        user.username = self.cleaned_data['email']  # логинимся по email
-        user.email = self.cleaned_data['email']
-        user.first_name = self.cleaned_data['first_name']
-        user.last_name = self.cleaned_data['last_name']
-        if commit:
-            user.save()
-            profile, created = md.Profile.objects.get_or_create(user=user)
-            profile.phone = self.cleaned_data['phone']
-            profile.agree_to_terms = self.cleaned_data['agree_to_terms']
-            profile.save()
-        return user
 
 
 class ProfileUpdateForm(forms.ModelForm):
@@ -467,65 +428,29 @@ class ProfileAddressForm(forms.ModelForm):
 class ProfileInviteeForm(forms.ModelForm):
     parther_name = forms.CharField(max_length=60,
                                    label='Фамилия и имя партнёра',
-                                   required=True,
+                                   required=False,
                                    widget=forms.TextInput(attrs={'class': 'form-control'}),
                                    validators=[RegexValidator(r'^[а-яА-ЯёЁ\s]+$', 'Поле -ФИО партнёра- может содержать только русские буквы и пробелы')]
                                    )
 
     parther_phone = forms.CharField(max_length=12,
                                     label='Номер телефона',
-                                    required=True,
+                                    required=False,
                                     widget=forms.TextInput(attrs={'class': 'form-control'}),
                                     validators=[md.validate_phone]
                                     )
-
-    parther_code = forms.CharField(max_length=10,
-                                   label='Код консультанта',
-                                   required=False,
-                                   widget=forms.TextInput(attrs={'class': 'form-control'}),
-                                   )
 
     class Meta:
         model = md.Profile_invitee
         fields = ['parther_name',
                   'parther_phone',
-                  'parther_code'
                   ]
-
-    def clean_parther_code(self):
-        parther_code = self.cleaned_data.get('parther_code')
-
-        if parther_code:
-            try:
-                partner_profile = md.Profile_partner.objects.get(referral_code=parther_code)
-
-                if hasattr(self, 'instance') and self.instance.user_id == partner_profile.user_id:
-                    raise forms.ValidationError("Вы не можете указать себя в качестве консультанта")
-
-                self.referred_user_id = partner_profile.user_id
-            except md.Profile_partner.DoesNotExist:
-                raise forms.ValidationError("Реферальный код не найден")
-
-        return parther_code
 
     def save(self, commit=True):
         profile_invitee = super().save(commit=False)
 
-        if hasattr(self, 'referred_user_id') and profile_invitee.user_id == self.referred_user_id:
-            raise ValueError("Пользователь не может быть своим собственным консультантом")
-
         if commit:
             profile_invitee.save()
-
-        if hasattr(self, 'referred_user_id'):
-            if profile_invitee.user_id != self.referred_user_id:
-                profile_partner, created = md.Profile_partner.objects.get_or_create(
-                    user=profile_invitee.user
-                )
-                profile_partner.referred_id = self.referred_user_id
-                profile_partner.save()
-            else:
-                print("Предотвращена попытка самоприглашения")
 
         return profile_invitee
 
@@ -533,7 +458,7 @@ class ProfileInviteeForm(forms.ModelForm):
 class ProfileQueueForm(forms.ModelForm):
     type_of_purchase = forms.ChoiceField(
         label='Тип покупки',
-        required=True,
+        required=False,
         choices=md.Profile_queue.PURCHASE_CHOICES,
         widget=forms.Select(attrs={'class': 'form-control'})
     )
@@ -548,7 +473,7 @@ class ProfileQueueForm(forms.ModelForm):
     price = forms.CharField(
         max_length=12,
         label='Стоимость объекта недвижимости',
-        required=True,
+        required=False,
         validators=[md.validate_price],
         widget=forms.TextInput(attrs={'class': 'form-control'})
     )
@@ -556,7 +481,7 @@ class ProfileQueueForm(forms.ModelForm):
     price_in_queue = forms.CharField(
         max_length=15,
         label='Стоимость объекта при переходе в очередь',
-        required=True,
+        required=False,
         validators=[md.validate_price],
         widget=forms.TextInput(attrs={'class': 'form-control'})
     )
@@ -564,7 +489,7 @@ class ProfileQueueForm(forms.ModelForm):
     id_coor = forms.CharField(
         max_length=24,
         label='Номер счёта',
-        required=True,
+        required=False,
         validators=[RegexValidator(r'^[0-9A-Za-z-]+$', 'Номер счёта может содержать только цифры и латинские буквы и дефис')],
         widget=forms.TextInput(attrs={'class': 'form-control'})
     )
@@ -576,13 +501,13 @@ class ProfileQueueForm(forms.ModelForm):
     )
 
     share_payment_photo = forms.FileField(
-        required=True,
+        required=False,
         label="Последняя квитанция об оплате паевого взноса",
         widget=forms.FileInput(attrs={'class': 'form-control'})
     )
 
     membership_fee_photo = forms.FileField(
-        required=True,
+        required=False,
         label="Последня квитанция об оплате членского взноса",
         widget=forms.FileInput(attrs={'class': 'form-control'})
     )

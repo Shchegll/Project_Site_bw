@@ -3,7 +3,6 @@
     <div class="content">
         <div class="banner">
             <h2>Партнёрская программа</h2>
-            
             {% if user.profile_partner.referred %}
             <div class="consultant-section">
                 <h3>Ваш Консультант</h3>
@@ -21,25 +20,14 @@
             {% endif %}
 
             <div class="referral-section">
-                <p>Ваша партнёрская ссылка:</p>
+                Ваш партнёрский код: <strong>{{ referral_code }}</strong>
                 <div class="link-container">
                     <div class="input-group">
-                        <input type="text" 
-                               class="form-control" 
-                               value="{{ referral_link }}" 
-                               id="referralLink"
-                               readonly>
-                        <button class="btn-copy" type="button" id="copyButton">
-                            Копировать ссылку
-                        </button>
                         <button class="btn-copy btn-invite" type="button" id="inviteButton" onclick="return false;">
                             Пригласить участника
                         </button>
                     </div>
                 </div>
-                <p class="referral-code">
-                    Ваш партнёрский код: <strong>{{ referral_code }}</strong>
-                </p>
             </div>
 
             <div class="partners-section">
@@ -189,7 +177,7 @@
     }
 
     .info-badge {
-        background: #007bff;
+        background: #00a658;
         color: white;
         padding: 8px 16px;
         border-radius: 20px;
@@ -197,13 +185,13 @@
         font-size: 14px;
         font-weight: 500;
         transition: all 0.3s ease;
-        border: 1px solid #007bff;
+        border: 1px solid #00a658;
         margin-top: 0px;
     }
 
     .info-badge:hover {
-        background: #0056b3;
-        border-color: #0056b3;
+        background: #00a658;
+        border-color: #00a658;
         color: white;
         text-decoration: none;
     }
@@ -388,9 +376,9 @@
     .no-partners {
         padding: 15px;
         background: #fff3cd;
-        border: 1px solid #ffeaa7;
+        border: 1px solid #d0ffa7ff;
         border-radius: 4px;
-        color: #856404;
+        color: #338504ff;
         margin-top: 15px;
         text-align: center;
     }
@@ -486,7 +474,7 @@
         padding: 8px 12px;
         background: #f8f9fa;
         border-radius: 6px;
-        border-left: 4px solid #007bff;
+        border-left: 4px solid #00a658;
     }
 
     .stat-label {
@@ -496,7 +484,7 @@
 
     .stat-value {
         font-weight: 600;
-        color: #007bff;
+        color: #00a658;
         font-size: 16px;
     }
 
@@ -686,7 +674,7 @@
 
         // Обработчик для кнопки "Пригласить участника" - пока ничего не делает
         document.getElementById('inviteButton').addEventListener('click', function() {
-            this.textContent = 'Ещё не работает';
+            window.location.href = "{% url 'personal_account:signup' %}";
         });
         
         const statusFilter = document.getElementById('statusFilter');
