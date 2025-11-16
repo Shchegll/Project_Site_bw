@@ -595,10 +595,6 @@ class Profile_queue(models.Model):
         verbose_name_plural = "Информация о статусе"
 
 
-class NotificationType(models.TextChoices):
-    MESSAGE = 'message', 'Сообщение'
-
-
 class SystemNotification(models.Model):
 
     STATUS_CHOICES = [
