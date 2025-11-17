@@ -11,9 +11,20 @@
                 </div>  
             {% endif %}  
             {% for field in form %}  
-                <p class="form-label">{{ field.label }}</p>  
-                <p>{{ field }}</p>  
+                {% if not forloop.last %}  
+                    <p class="form-label">{{ field.label }}</p>  
+                    <p>{{ field }}</p>
+                {% endif %}   
             {% endfor %}  
+            <div class="form-label" style="display: inline;">
+                {{ form.agree_to_terms }}
+                <span>
+                    Я согласен с 
+                    <a href="/static/img/approval/membership_agreement.pdf" target="_blank" class="terms-link">
+                        условиями обработки данных
+                    </a>
+                </span>
+            </div>
             
             <div class="auth-buttons_reset">
                 <button type="submit" class="auth-button">Войти</button>  

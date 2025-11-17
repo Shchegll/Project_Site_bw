@@ -662,16 +662,6 @@
             document.getElementById('stat-candidates').textContent = participant;
         }
 
-        document.getElementById('copyButton').addEventListener('click', function() {
-            const referralLink = document.getElementById('referralLink');
-            referralLink.select();
-            document.execCommand('copy');
-            this.textContent = 'Скопировано!';
-            setTimeout(() => {
-                this.textContent = 'Копировать';
-            }, 2000);
-        });
-
         // Обработчик для кнопки "Пригласить участника" - пока ничего не делает
         document.getElementById('inviteButton').addEventListener('click', function() {
             window.location.href = "{% url 'personal_account:signup' %}";

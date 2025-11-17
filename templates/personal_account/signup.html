@@ -16,10 +16,8 @@
         <form method="post"> 
             {% csrf_token %}  
             {% for field in form %}
-                {% if not forloop.last %}
                 <p class="form-label"> {{ field.label }}</p>  
                 <p>{{ field }}</p>
-                {% endif %}
             {% endfor %}
             <div class="auth-buttons_reset">
                 <button type="submit" class="auth-button">Пригласить</button>  
