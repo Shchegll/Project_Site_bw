@@ -249,7 +249,7 @@ Email: {email}
 ---
 
 С уважением,
-Команда Наш дом
+Команда Наш Дом
             '''
 
             from_email = settings.DEFAULT_FROM_EMAIL
