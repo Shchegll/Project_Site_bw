@@ -82,9 +82,17 @@ class RegistrationForm(forms.ModelForm):
         })
     )
 
+    agree_to_terms = forms.BooleanField(
+        label='Согласен с условиями обработки персональных данных',
+        widget=forms.CheckboxInput(attrs={
+            'class': 'form-check-input',
+            'required': True
+        })
+    )
+
     class Meta:
         model = User
-        fields = ['email', 'first_name', 'last_name', 'phone']
+        fields = ['email', 'first_name', 'last_name', 'phone', 'agree_to_terms']
 
     def clean_email(self):
         email = self.cleaned_data['email']
@@ -458,7 +466,7 @@ class ProfileInviteeForm(forms.ModelForm):
 class ProfileQueueForm(forms.ModelForm):
     type_of_purchase = forms.ChoiceField(
         label='Тип покупки',
-        required=False,
+        required=True,
         choices=md.Profile_queue.PURCHASE_CHOICES,
         widget=forms.Select(attrs={'class': 'form-control'})
     )
@@ -473,7 +481,7 @@ class ProfileQueueForm(forms.ModelForm):
     price = forms.CharField(
         max_length=12,
         label='Стоимость объекта недвижимости',
-        required=False,
+        required=True,
         validators=[md.validate_price],
         widget=forms.TextInput(attrs={'class': 'form-control'})
     )
@@ -481,7 +489,7 @@ class ProfileQueueForm(forms.ModelForm):
     price_in_queue = forms.CharField(
         max_length=15,
         label='Стоимость объекта при переходе в очередь',
-        required=False,
+        required=True,
         validators=[md.validate_price],
         widget=forms.TextInput(attrs={'class': 'form-control'})
     )

@@ -6,9 +6,28 @@
             {% csrf_token %}
             <div class="form-section">
                 <h3>Информация о покупке</h3>
-                <h3>Заполняйте только те данные, которые у вас имеются</h3>
                 <div class="form-row">
+                    <div class="form-group">
+                        {{ form.type_of_purchase.label_tag }}
+                        {{ form.type_of_purchase }}
+                    </div>
 
+                    <div class="form-group">
+                        {{ form.price.label_tag }}
+                        {{ form.price }}
+                    </div>
+                    
+                    <div class="form-group">
+                        {{ form.price_in_queue.label_tag }}
+                        {{ form.price_in_queue }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>Информация об участии в ПК "Бест Вей"</h3>
+                <h4>Заполняйте только те данные, которые у вас имеются</h4>
+                <div class="form-row">
                     <div class="form-group">
                         {{ form.id_coor.label_tag }}
                         {{ form.id_coor }}
@@ -27,21 +46,6 @@
                     <div class="form-group">
                         {{ form.membership_fee_photo.label_tag }}
                         {{ form.membership_fee_photo }}
-                    </div>
-
-                    <div class="form-group">
-                        {{ form.type_of_purchase.label_tag }}
-                        {{ form.type_of_purchase }}
-                    </div>
-
-                    <div class="form-group">
-                        {{ form.price.label_tag }}
-                        {{ form.price }}
-                    </div>
-                    
-                    <div class="form-group">
-                        {{ form.price_in_queue.label_tag }}
-                        {{ form.price_in_queue }}
                     </div>
                 </div>
             </div>
