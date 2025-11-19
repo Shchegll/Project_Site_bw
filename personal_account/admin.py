@@ -276,7 +276,7 @@ class ProfilePartnerAdmin(admin.ModelAdmin):
         'referred',
     ]
 
-    readonly_fields = ['referral_code', 'consultant_level']
+    readonly_fields = ['referral_code']
 
     autocomplete_fields = ['referred']
 
