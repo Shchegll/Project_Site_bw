@@ -3,7 +3,7 @@
     <div class="content">
         <div class="profile-header">
             <h2>Ваш профиль - {{ user_profile.last_name }} {{ user_profile.first_name }}</h2>
-            <h3 style="font-weight: normal;">{{ user.profile_queue.id_coor }}</h3>    
+            {% comment %} <h3 style="font-weight: normal;">{{ user.profile_queue.id_coor }}</h3>     {% endcomment %}
             <h5>Статус - <strong>{{ user.profile_queue.status }}</strong></h5>
         </div>
 
@@ -52,7 +52,7 @@
             </div>
 
             <div class="info-row">
-                <div class="info-label">Стоимость объекта недвижимости при переходе в очередь:</div>
+                <div class="info-label">Размер сформированного пая для перехода в очередь:</div>
                 <div class="info-value" id="priceQueue">{{ user.profile_queue.price_in_queue }} руб</div>
             </div>
 

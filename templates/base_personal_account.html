@@ -5,9 +5,9 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=2.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" href="{% static 'img/fav/favicon.ico' %}" type="image/x-icon">
-    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=7.0">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=1.0">
 </head>
 <body>
   
@@ -174,7 +174,7 @@
 
     .menu-item:hover { background: #e9ecef; border-color: #ced4da; }
 
-    .menu-item.active { background: #00a658; color: white; border-color: #00a658; font-weight: 500; }
+    .menu-item.active { background: #9bd1e8; color: white; border-color: #9bd1e8; font-weight: 500; }
 
     .content { width: 66.667%; padding: 30px; }
 
@@ -199,14 +199,14 @@
 
     .profile-actions { margin-top: 25px; padding-top: 15px; border-top: 1px solid #e9ecef; }
 
-    .edit-button { display: inline-block; padding: 10px 20px; background: #00a658; color: white; text-decoration: none; border-radius: 6px; font-weight: 500; transition: background 0.2s ease; }
-    .edit-button:hover { background: #00a658; text-decoration: none; color: white; }
+    .edit-button { display: inline-block; padding: 10px 20px; background: #9bd1e8; color: white; text-decoration: none; border-radius: 6px; font-weight: 500; transition: background 0.2s ease; }
+    .edit-button:hover { background: #9bd1e8; text-decoration: none; color: white; }
     .submenu {
         display: none;
         margin-left: 15px;
         margin-top: 5px;
         background: #ffffff;
-        border-left: 3px solid #00a658;
+        border-left: 3px solid #9bd1e8;
         border-radius: 6px;
         padding: 8px 10px;
         box-shadow: 0 1px 5px rgba(0,0,0,0.1);
@@ -407,9 +407,9 @@
                 const button = this;
                 const originalText = button.textContent;
                 button.textContent = 'Скопировано!';
-                button.style.background = '#d4edda';
-                button.style.borderColor = '#c3e6cb';
-                button.style.color = '#155724';
+                button.style.background = '#a5dcf4ff';
+                button.style.borderColor = '#a5dcf4ff';
+                button.style.color = '#2a7fbcff';
                 
                 setTimeout(() => {
                     button.textContent = originalText;

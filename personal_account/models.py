@@ -546,7 +546,7 @@ class Profile_queue(models.Model):
                              )
 
     price_in_queue = models.CharField(max_length=15,
-                                      verbose_name='Стоимость объекта при переходе в очередь',
+                                      verbose_name='Размер сформированного пая для перехода в очередь',
                                       blank=True,
                                       default='',
                                       validators=[validate_price]

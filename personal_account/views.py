@@ -238,7 +238,7 @@ class RegistrationStartView(View):
 
 Email: {email}
 Пароль: {password}
-Ссалка для входа на сайт: 
+Ссалка для входа на сайт: https://pknashdom.ru/personal_account/login/
 
 ---
 
@@ -250,7 +250,7 @@ Email: {email}
 ---
 
 С уважением,
-Команда Наш Дом
+Администрация сайта pknashdom.ru
             '''
 
             from_email = settings.DEFAULT_FROM_EMAIL
